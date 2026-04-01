@@ -40,10 +40,13 @@ namespace MindMap._2_Logical
             _items.Add((elementData, te));
         }
 
-        public void SetElementZindex(FrameworkElement element, int zIndex)
+        public int SetElementMaxZindex(FrameworkElement element)
         {
             (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
-            item.Item1.Zindex = zIndex;
+            int index = Context.CurrProject.GetMaxZindex();
+            index++; 
+            item.Item1.Zindex = index;
+            return index;
         }
 
         public void UpdateElementCoordinates(FrameworkElement element, double x, double y)

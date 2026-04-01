@@ -75,18 +75,18 @@ namespace MindMap.Presentation.Components
 
         void BringToFront(FrameworkElement element)
         {
-            int index = MainWindow.GetMaxZindex();
+            int index = Context.Controller.SetElementMaxZindex(this);
             Panel.SetZIndex(this, index);
-            Context.Controller.SetElementZindex(this, index);
         }
 
 
         private void Element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             _dragElement = (FrameworkElement)sender;
-            _isDragging = true;
 
             BringToFront(_dragElement);
+            
+            _isDragging = true;
 
             _mouseStart = e.GetPosition(_ownerWindow.Canvas);
 

@@ -23,8 +23,6 @@ namespace WpfLineDemo
 
         private Key? _keyPressed;
 
-        private static int _topZ = 0;
-
 
         public Key? KeyPressed
         {
@@ -50,11 +48,6 @@ namespace WpfLineDemo
             Context.CurrProject = new MindMap.Data.MindMapData();
             Context.Controller = new MindMap._2_Logical.Controller();
             Context.MainWindow = this;
-        }
-
-        public static int GetMaxZindex()
-        {
-            return ++_topZ;
         }
 
         private void MyCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
