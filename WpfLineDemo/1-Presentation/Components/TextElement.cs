@@ -84,6 +84,8 @@ namespace MindMap.Presentation.Components
         {
             _dragElement = (FrameworkElement)sender;
 
+            Context.Controller.ElementStartMoving(_dragElement);
+
             BringToFront(_dragElement);
             
             _isDragging = true;
@@ -120,8 +122,8 @@ namespace MindMap.Presentation.Components
             {
                 Context.Controller.LineElementSpecified(this);
 
-                e.Handled = true;
-                return;
+                //e.Handled = true;
+                //return;
             }
 
             if (_dragElement is null) return;

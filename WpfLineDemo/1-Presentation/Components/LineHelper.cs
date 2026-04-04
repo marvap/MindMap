@@ -17,17 +17,9 @@ namespace MindMap.Presentation.Components
         /// <summary>
         /// Factory method
         /// </summary>
-        public static void DrawLine(MainWindow ownerWindow, double x1, double y1, double x2, double y2)
+        public static void DrawLine(MainWindow ownerWindow, double x1, double y1, double x2, double y2, bool visible)
         {
-            drawLine(ownerWindow, x1, y1, x2, y2, true);
-        }
-
-        /// <summary>
-        /// Factory method
-        /// </summary>
-        public static void RemoveLine(MainWindow ownerWindow, double x1, double y1, double x2, double y2)
-        {
-            drawLine(ownerWindow, x1, y1, x2, y2, false);
+            drawLine(ownerWindow, x1, y1, x2, y2, visible);
         }
 
         private static void drawLine(MainWindow ownerWindow, double x1, double y1, double x2, double y2, bool visible)
@@ -41,7 +33,7 @@ namespace MindMap.Presentation.Components
             };
 
             line.Stroke = visible ? Brushes.Black : Brushes.White;
-            line.StrokeThickness = 1;
+            line.StrokeThickness = visible ? 1 : 3;
 
             ownerWindow.Canvas.Children.Add(line);
         }

@@ -49,11 +49,36 @@ namespace MindMap._2_Logical
             return index;
         }
 
+        public void ElementStartMoving(FrameworkElement element)
+        {
+            (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
+            drawAllElementLines(item, false);
+        }
+
         public void UpdateElementCoordinates(FrameworkElement element, double x, double y)
         { 
             (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
             item.Item1.X = x;
             item.Item1.Y = y;
+            drawAllElementLines(item, true);
+        }
+
+        private void drawAllElementLines((ElementBaseData, FrameworkElement) item, bool visible)
+        {
+            foreach (LineData line in Context.CurrProject.Lines.Where(l => l.Element1ID == item.Item1.ID || l.Element2ID == item.Item1.ID))
+            {
+                drawTwoElementsLine(_items.First(i => i.Item1.ID == line.Element1ID), _items.First(i => i.Item1.ID == line.Element2ID), visible);
+            }
+        }
+
+        private void drawTwoElementsLine((ElementBaseData, FrameworkElement) item1, (ElementBaseData, FrameworkElement) item2, bool visible)
+        {
+            double x1 = item1.Item1.X + item1.Item2.ActualWidth / 2;
+            double y1 = item1.Item1.Y + item1.Item2.ActualHeight / 2;
+            double x2 = item2.Item1.X + item2.Item2.ActualWidth / 2;
+            double y2 = item2.Item1.Y + item2.Item2.ActualHeight / 2;
+
+            LineHelper.DrawLine(Context.MainWindow, x1, y1, x2, y2, visible);
         }
 
         public void LineElementSpecified(FrameworkElement element)
@@ -74,13 +99,10 @@ namespace MindMap._2_Logical
                     Element1ID = _lineItem1.Value.Item1.ID,
                     Element2ID = lineItem2.Item1.ID
                 };
+                Context.CurrProject.Lines.Add(lineData);
 
-                double x1 = _lineItem1.Value.Item1.X + _lineItem1.Value.Item2.ActualWidth / 2;
-                double y1 = _lineItem1.Value.Item1.Y + _lineItem1.Value.Item2.ActualHeight / 2;
-                double x2 = lineItem2.Item1.X + lineItem2.Item2.ActualWidth / 2;
-                double y2 = lineItem2.Item1.Y + lineItem2.Item2.ActualHeight / 2;
+                drawTwoElementsLine(_lineItem1.Value, lineItem2, true);
 
-                LineHelper.DrawLine(Context.MainWindow, x1, y1, x2, y2);
             }
             else
             {
