@@ -83,6 +83,10 @@ namespace WpfLineDemo
                 {
                     Context.Controller.Open();
                 }
+                else if (e.Key == Key.N)
+                {
+                    Context.Controller.New();
+                }
             }
 
             _keyPressed = e.Key;

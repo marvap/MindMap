@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -59,6 +60,8 @@ namespace MindMap._2_Logical
             item.Item1.X = x;
             item.Item1.Y = y;
             drawAllElementLines(item, true);
+
+            redrawAllLinesOnBackground(); // mohly být poškozeny některé jiné linie
         }
 
         private void drawAllElementLines((ElementBaseData, FrameworkElement) item, bool visible)
@@ -120,11 +123,12 @@ namespace MindMap._2_Logical
                 _items.Add((ebd, te));
             }
 
-            redrawALlLinesOnBackground();
-            //foreach (LineData ld in Context.CurrProject.Lines)
-            //{
-            //    drawTwoElementsLine(_items.First(i => i.Item1.ID == ld.Element1ID), _items.First(i => i.Item1.ID == ld.Element2ID), true);
-            //}
+            redrawAllLinesOnBackground();
+        }
+
+        private void redrawAllLinesOnBackground()
+        { 
+            Task.Run(async () => { await redrawAllLines(); });
         }
 
         private async Task redrawAllLines()
@@ -137,11 +141,6 @@ namespace MindMap._2_Logical
                     drawTwoElementsLine(_items.First(i => i.Item1.ID == line.Element1ID), _items.First(i => i.Item1.ID == line.Element2ID), true);
                 }, DispatcherPriority.ContextIdle);
             }
-        }
-
-        private void redrawALlLinesOnBackground()
-        { 
-            Task.Run(async () => { await redrawAllLines(); });
         }
 
         private string DATA_SUBFOLDER = "MindMaps";
@@ -181,8 +180,6 @@ namespace MindMap._2_Logical
             if (result.HasValue && result.Value)
             {
                 Context.CurrFilePath = dialog.FileName;
-
-                // TODO pokud soubor už existuje, zeptat, zda přepsat a reagovat podle odpovědi
 
                 Save();
             }
@@ -224,13 +221,33 @@ namespace MindMap._2_Logical
             if (result.HasValue && result.Value)
             {
                 string content = File.ReadAllText(dialog.FileName, Encoding.UTF8);
-                MindMapData mmd = MindMapData.Deserialize(content);
 
                 // TODO dialog na uložení současných dat
 
+                MindMapData mmd = MindMapData.Deserialize(content);
+                Context.MainWindow.MyCanvas.Children.Clear();
+
                 Context.CurrProject = mmd;
+                Context.CurrFilePath = dialog.FileName;
+                _items.Clear();
+
                 drawEverythigFromData();
+
+                Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
             }
+        }
+
+        public void New()
+        {
+            // TODO dialog na uložení současných dat
+
+            Context.MainWindow.MyCanvas.Children.Clear();
+
+            Context.CurrProject = new MindMapData();
+            Context.CurrFilePath = null;
+            _items.Clear();
+
+            Context.MainWindow.Title = "Mind Map - New project";
         }
 
     }
