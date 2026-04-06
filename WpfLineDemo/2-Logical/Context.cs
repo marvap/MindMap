@@ -15,5 +15,7 @@ namespace MindMap.Logical
         public static Controller Controller { get; set; }
 
         public static MainWindow MainWindow { get; set; }
+
+        public static string CurrFilePath { get; set; }
     }
 }

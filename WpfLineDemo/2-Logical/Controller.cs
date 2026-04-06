@@ -3,17 +3,15 @@ using MindMap.Logical;
 using MindMap.Presentation.Components;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
-
-
-
-//using System.Windows.Documents;
-using static System.Net.Mime.MediaTypeNames;
+using System.Windows.Threading;
 
 namespace MindMap._2_Logical
 {
@@ -109,7 +107,131 @@ namespace MindMap._2_Logical
                 _lineItem1 = _items.First(i => i.Item2 == element);
                 _lineItem1ClickTime = DateTime.Now;
             }
-
         }
+
+        private void drawEverythigFromData()
+        {
+            foreach (ElementBaseData ebd in Context.CurrProject.Elements)
+            {
+                TextElement te = TextElement.CreateTextElement(Context.MainWindow, ebd.X, ebd.Y, ebd.Text);
+                Panel.SetZIndex(te, ebd.Zindex);
+                Context.MainWindow.MyCanvas.Children.Add(te);
+
+                _items.Add((ebd, te));
+            }
+
+            redrawALlLinesOnBackground();
+            //foreach (LineData ld in Context.CurrProject.Lines)
+            //{
+            //    drawTwoElementsLine(_items.First(i => i.Item1.ID == ld.Element1ID), _items.First(i => i.Item1.ID == ld.Element2ID), true);
+            //}
+        }
+
+        private async Task redrawAllLines()
+        {
+            foreach (LineData line in Context.CurrProject.Lines)
+            {
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    // práce s UI
+                    drawTwoElementsLine(_items.First(i => i.Item1.ID == line.Element1ID), _items.First(i => i.Item1.ID == line.Element2ID), true);
+                }, DispatcherPriority.ContextIdle);
+            }
+        }
+
+        private void redrawALlLinesOnBackground()
+        { 
+            Task.Run(async () => { await redrawAllLines(); });
+        }
+
+        private string DATA_SUBFOLDER = "MindMaps";
+
+        public void SaveAs()
+        {
+            string path = Context.CurrFilePath;
+            string directory = null;
+            string fileName = null;
+            if (string.IsNullOrEmpty(path))
+            {
+                string pathBase = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string fullDefaultPath = Path.Combine(pathBase, DATA_SUBFOLDER);
+                if (!Directory.Exists(fullDefaultPath))
+                {
+                    Directory.CreateDirectory(fullDefaultPath);
+                }
+                directory = fullDefaultPath;
+                fileName = "MyMindMap.mmd";
+            }
+            else
+            { 
+                directory = Path.GetDirectoryName(path);
+                fileName = Path.GetFileName(path);
+            }
+
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                FileName = fileName,
+                DefaultDirectory  = directory,
+                InitialDirectory = directory,
+                Filter = "Soubory typu MindMap (*.mmd)|*.mmd"
+            };
+
+            bool? result = dialog.ShowDialog();
+
+            if (result.HasValue && result.Value)
+            {
+                Context.CurrFilePath = dialog.FileName;
+
+                // TODO pokud soubor už existuje, zeptat, zda přepsat a reagovat podle odpovědi
+
+                Save();
+            }
+        }
+
+        public void Save()
+        {
+            if (string.IsNullOrEmpty(Context.CurrFilePath))
+            {
+                SaveAs();
+            }
+            else
+            {
+                string content = Context.CurrProject.Serialize();
+                File.WriteAllText(Context.CurrFilePath, content, Encoding.UTF8);
+                Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
+            }
+        }
+
+        public void Open()
+        {
+            string pathBase = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string fullDefaultPath = Path.Combine(pathBase, DATA_SUBFOLDER);
+            if (!Directory.Exists(fullDefaultPath))
+            {
+                Directory.CreateDirectory(fullDefaultPath);
+            }
+
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                DefaultDirectory = fullDefaultPath,
+                InitialDirectory = fullDefaultPath,
+                Filter = "Soubory typu MindMap (*.mmd)|*.mmd",
+                Title = "Výběr souboru"
+            };
+
+            bool? result = dialog.ShowDialog();
+
+            if (result.HasValue && result.Value)
+            {
+                string content = File.ReadAllText(dialog.FileName, Encoding.UTF8);
+                MindMapData mmd = MindMapData.Deserialize(content);
+
+                // TODO dialog na uložení současných dat
+
+                Context.CurrProject = mmd;
+                drawEverythigFromData();
+            }
+        }
+
     }
 }

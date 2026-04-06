@@ -8,9 +8,9 @@ namespace MindMap.Data
 {
     public class MindMapData
     {
-        public List<ElementBaseData> Elements { get; } = new List<ElementBaseData>();
+        public List<ElementBaseData> Elements { get; set; } = new List<ElementBaseData>();
 
-        public List<LineData> Lines { get; } = new List<LineData>();
+        public List<LineData> Lines { get; set; } = new List<LineData>();
 
 
         public ElementBaseData GetElementData(int elementID)

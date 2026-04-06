@@ -68,6 +68,23 @@ namespace WpfLineDemo
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (_keyPressed == Key.LeftCtrl || _keyPressed == Key.RightCtrl)
+            {
+
+                if (e.Key == Key.A)
+                {
+                    Context.Controller.SaveAs();
+                }
+                else if (e.Key == Key.S)
+                { 
+                    Context.Controller.Save();
+                }
+                else if (e.Key == Key.O)
+                {
+                    Context.Controller.Open();
+                }
+            }
+
             _keyPressed = e.Key;
         }
 
