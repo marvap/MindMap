@@ -2,6 +2,7 @@
 using MindMap.Logical;
 using System;
 using System.Collections.Generic;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Windows;
@@ -30,6 +31,13 @@ namespace MindMap.Presentation.Components
         private static Point _mouseStart;      // pozice myši vůči plátnu při začátku drag
         private static Point _elementStart;    // původní Left/Top prvku při začátku drag
 
+        public string Text
+        {
+            get 
+            {
+                return (Child as TextBlock)?.Text;
+            }
+        }
 
         private TextElement(MainWindow owner, string text)
         {
@@ -82,7 +90,15 @@ namespace MindMap.Presentation.Components
 
         private void Element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (e.ClickCount == 2) // dvojklik
+            {
+               // Context.MainWindow.ShowNewEditor(new Point(Canvas.GetLeft(this), Canvas.GetTop(this)), this);
+                //MessageBox.Show("Dvojklik");
+                return;
+            }
+
             _dragElement = (FrameworkElement)sender;
+
 
             Context.Controller.ElementStartMoving(_dragElement);
 
@@ -95,9 +111,9 @@ namespace MindMap.Presentation.Components
             double left = Canvas.GetLeft(_dragElement);
             double top = Canvas.GetTop(_dragElement);
 
-            // když Left/Top nebylo nastaveno, vrací NaN → ošetříme
-            if (double.IsNaN(left)) left = 0;
-            if (double.IsNaN(top)) top = 0;
+            //// když Left/Top nebylo nastaveno, vrací NaN → ošetříme
+            //if (double.IsNaN(left)) left = 0;
+            //if (double.IsNaN(top)) top = 0;
 
             _elementStart = new Point(left, top);
 
@@ -121,6 +137,13 @@ namespace MindMap.Presentation.Components
             if (_ownerWindow.KeyPressed == Key.L)
             {
                 Context.Controller.LineElementSpecified(this);
+
+                //e.Handled = true;
+                //return;
+            }
+            else if (_ownerWindow.KeyPressed == Key.R) // rubber
+            {
+                Context.Controller.DelineElementSpecified(this);
 
                 //e.Handled = true;
                 //return;

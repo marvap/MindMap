@@ -23,6 +23,9 @@ namespace MindMap._2_Logical
         private (ElementBaseData, FrameworkElement)? _lineItem1;
         private DateTime _lineItem1ClickTime;
 
+        private (ElementBaseData, FrameworkElement)? _delineItem1;
+        private DateTime _delineItem1ClickTime;
+
         public void NewTextEditingFinished(double x, double y, string text)
         {
             TextElement te = TextElement.CreateTextElement(Context.MainWindow, x, y, text);
@@ -109,6 +112,36 @@ namespace MindMap._2_Logical
             {
                 _lineItem1 = _items.First(i => i.Item2 == element);
                 _lineItem1ClickTime = DateTime.Now;
+            }
+        }
+
+        /// <summary>
+        /// Mazání linie
+        /// </summary>
+        public void DelineElementSpecified(FrameworkElement element)
+        {
+            if (_delineItem1 != null && element != _delineItem1.Value.Item2 && DateTime.Now.Subtract(_delineItem1ClickTime).TotalSeconds < 4) // magické 4 s
+            {
+                var delineItem2 = _items.First(i => i.Item2 == element);
+
+                List<LineData> linesToRemove = Context.CurrProject.Lines.Where(l => l.Element1ID == _delineItem1.Value.Item1.ID && l.Element2ID == delineItem2.Item1.ID ||
+                                                       l.Element1ID == delineItem2.Item1.ID && l.Element2ID == _delineItem1.Value.Item1.ID).ToList();
+                if (!linesToRemove.Any())
+                {
+                    MessageBox.Show("Taková relace neexistuje.");
+                    return;
+                }
+
+                foreach (LineData lineData in linesToRemove)
+                {
+                    Context.CurrProject.Lines.Remove(lineData);
+                    drawTwoElementsLine(_delineItem1.Value, delineItem2, false);
+                }
+            }
+            else
+            {
+                _delineItem1 = _items.First(i => i.Item2 == element);
+                _delineItem1ClickTime = DateTime.Now;
             }
         }
 
