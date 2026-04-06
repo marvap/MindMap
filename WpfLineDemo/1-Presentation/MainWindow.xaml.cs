@@ -1,4 +1,5 @@
-﻿using MindMap.Logical;
+﻿using MindMap._1_Presentation.Components;
+using MindMap.Logical;
 using System.Globalization;
 using System.Text;
 using System.Windows;
@@ -19,7 +20,7 @@ namespace WpfLineDemo
     public partial class MainWindow : Window
     {
         // Editor
-        private TextBox? _activeEditor;
+        private TextEdit? _activeEditor;
 
         private Key? _keyPressed;
 
@@ -52,13 +53,33 @@ namespace WpfLineDemo
 
         private void MyCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (_activeEditor != null)
+            if (_activeEditor != null && _activeEditor.IsActive)
             {
-                EditorToTextElement(); // ukonči editaci aktuálního prvku
+                EditorToTextElement(_activeEditor); // ukonči editaci aktuálního prvku
             }
 
             var pos = e.GetPosition(MyCanvas);
             ShowNewEditor(pos); // zahájí editaci nového prvku
+        }
+
+        public void EditorToTextElement(TextEdit te)
+        {
+            string text = te.Text;
+
+            double x = Canvas.GetLeft(te);
+            double y = Canvas.GetTop(te);
+
+            te.CancelEditor();
+
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                Context.Controller.NewTextEditingFinished(x, y, text);
+            }
+        }
+
+        private void ShowNewEditor(Point position)
+        {
+            _activeEditor = new TextEdit(position);
         }
 
         private void ArrowButton_Click(object sender, RoutedEventArgs e)
@@ -70,7 +91,6 @@ namespace WpfLineDemo
         {
             if (_keyPressed == Key.LeftCtrl || _keyPressed == Key.RightCtrl)
             {
-
                 if (e.Key == Key.A)
                 {
                     Context.Controller.SaveAs();

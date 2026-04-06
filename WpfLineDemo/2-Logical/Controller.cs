@@ -283,5 +283,9 @@ namespace MindMap._2_Logical
             Context.MainWindow.Title = "Mind Map - New project";
         }
 
+        public void UpdateTextElementText(TextElement textElementToUpdate, string text)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

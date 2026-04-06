@@ -7,10 +7,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	  <UseWPF>true</UseWPF>
   </PropertyGroup>
-  <ItemGroup>
-	  <Compile Update="1-Presentation\MainWindow.Editor.cs">
-		  <DependentUpon>MainWindow.xaml</DependentUpon>
-	  </Compile>
-  </ItemGroup>
 
 </Project>
