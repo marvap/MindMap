@@ -102,6 +102,38 @@ namespace MindMap.Presentation.Components
 
         private void Element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (_ownerWindow.KeyPressed == Key.L)
+            {
+                Context.Controller.LineElementSpecified(this);
+
+                e.Handled = true;
+                return;
+            }
+            else if (_ownerWindow.KeyPressed == Key.R) // rubber / remove
+            {
+                if (e.ClickCount == 2)
+                {
+                    var result = MessageBox.Show(
+                        Context.MainWindow,
+                        "Opravdu chcete smazat tento element?",
+                        "Potvrzení",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        Context.Controller.ElementRemovalRequested(this);
+                    }
+                }
+                else
+                {
+                    Context.Controller.DelineElementSpecified(this);
+                }
+
+                e.Handled = true;
+                return;
+            }
+
             if (e.ClickCount == 2) // dvojklik
             {
                 Context.Controller.TextElementEditRequested(this);
@@ -142,21 +174,6 @@ namespace MindMap.Presentation.Components
 
         private void Element_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (_ownerWindow.KeyPressed == Key.L)
-            {
-                Context.Controller.LineElementSpecified(this);
-
-                e.Handled = true;
-                return;
-            }
-            else if (_ownerWindow.KeyPressed == Key.R) // rubber / remove
-            {
-                Context.Controller.DelineElementSpecified(this);
-
-                e.Handled = true;
-                return;
-            }
-
             if (_dragElement is null) return;
 
             Context.Controller.UpdateElementCoordinates(_dragElement, Canvas.GetLeft(_dragElement), Canvas.GetTop(_dragElement));

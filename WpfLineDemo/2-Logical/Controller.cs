@@ -106,6 +106,27 @@ namespace MindMap._2_Logical
             _items.Add((elementData, te));
         }
 
+        public void ElementRemovalRequested(TextElement textElement)
+        {
+            (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == textElement);
+
+            // Remove everything visually and data
+            //
+            List<LineData> linesToRemove = Context.CurrProject.Lines.Where(l => l.Element1ID == item.Item1.ID || l.Element2ID == item.Item1.ID).ToList();
+            foreach (LineData lineData in linesToRemove)
+            {
+                drawTwoElementsLine(_items.First(i =>i.Item1.ID == lineData.Element1ID), _items.First(i => i.Item1.ID == lineData.Element2ID), false);
+                Context.CurrProject.Lines.Remove(lineData);
+            }
+
+            Context.MainWindow.MyCanvas.Children.Remove(textElement);
+            Context.CurrProject.Elements.Remove(item.Item1);
+
+            _items.Remove(item);
+
+            redrawAllLinesOnBackground();
+        }
+
         public int SetElementMaxZindex(FrameworkElement element)
         {
             (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
@@ -346,5 +367,6 @@ namespace MindMap._2_Logical
 
             Context.MainWindow.Title = "Mind Map - New project";
         }
+
     }
 }
