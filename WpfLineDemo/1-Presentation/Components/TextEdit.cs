@@ -15,8 +15,6 @@ namespace MindMap._1_Presentation.Components
     {
         public bool IsActive { get; set; } = true;
 
-        private TextElement? _textElementToUpdate;
-
 
         public TextEdit(Point position, string text = "", TextElement? teToUpdate = null)
         {
@@ -39,9 +37,6 @@ namespace MindMap._1_Presentation.Components
             Canvas.SetLeft(this, position.X);
             Canvas.SetTop(this, position.Y);
 
-            _textElementToUpdate = teToUpdate;
-            teToUpdate?.Visibility = Visibility.Hidden;
-
             Context.MainWindow.MyCanvas.Children.Add(this);
             this.Focus();
             this.CaretIndex = 0;
@@ -51,22 +46,14 @@ namespace MindMap._1_Presentation.Components
         {
             if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
             {
+                Context.Controller.EditorToTextElement(this);
                 e.Handled = true;
-                if (_textElementToUpdate != null)
-                {
-                    Context.Controller.UpdateTextElementText(_textElementToUpdate, Text);
-                    _textElementToUpdate.Visibility = Visibility.Visible;
-                    CancelEditor();
-                }
-                else
-                {
-                    Context.MainWindow.EditorToTextElement(this);
-                }
             }
             else if (e.Key == Key.Escape)
             {
+                Text = string.Empty;
+                Context.Controller.EditorToTextElement(this);
                 e.Handled = true;
-                CancelEditor();
             }
         }
 
@@ -98,21 +85,6 @@ namespace MindMap._1_Presentation.Components
 
             return new Size(ft.Width, ft.Height);
         }
-
-        //private void EditorToTextElement()
-        //{
-        //    string text = this.Text;
-
-        //    double x = Canvas.GetLeft(this);
-        //    double y = Canvas.GetTop(this);
-
-        //    CancelEditor();
-
-        //    if (!string.IsNullOrWhiteSpace(text))
-        //    {
-        //        Context.Controller.NewTextEditingFinished(x, y, text);
-        //    }
-        //}
 
         public void CancelEditor()
         {

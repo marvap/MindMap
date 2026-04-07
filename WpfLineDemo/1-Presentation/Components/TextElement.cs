@@ -37,6 +37,18 @@ namespace MindMap.Presentation.Components
             {
                 return (Child as TextBlock)?.Text;
             }
+            set
+            {
+                (Child as TextBlock)?.Text = value;
+            }
+        }
+
+        public Point Position
+        {
+            get
+            {
+                return new Point(Canvas.GetLeft(this), Canvas.GetTop(this));
+            }
         }
 
         private TextElement(MainWindow owner, string text)
@@ -92,8 +104,8 @@ namespace MindMap.Presentation.Components
         {
             if (e.ClickCount == 2) // dvojklik
             {
-               // Context.MainWindow.ShowNewEditor(new Point(Canvas.GetLeft(this), Canvas.GetTop(this)), this);
-                //MessageBox.Show("Dvojklik");
+                Context.Controller.TextElementEditRequested(this);
+                e.Handled = true;
                 return;
             }
 
@@ -110,10 +122,6 @@ namespace MindMap.Presentation.Components
 
             double left = Canvas.GetLeft(_dragElement);
             double top = Canvas.GetTop(_dragElement);
-
-            //// když Left/Top nebylo nastaveno, vrací NaN → ošetříme
-            //if (double.IsNaN(left)) left = 0;
-            //if (double.IsNaN(top)) top = 0;
 
             _elementStart = new Point(left, top);
 
@@ -138,15 +146,15 @@ namespace MindMap.Presentation.Components
             {
                 Context.Controller.LineElementSpecified(this);
 
-                //e.Handled = true;
-                //return;
+                e.Handled = true;
+                return;
             }
-            else if (_ownerWindow.KeyPressed == Key.R) // rubber
+            else if (_ownerWindow.KeyPressed == Key.R) // rubber / remove
             {
                 Context.Controller.DelineElementSpecified(this);
 
-                //e.Handled = true;
-                //return;
+                e.Handled = true;
+                return;
             }
 
             if (_dragElement is null) return;

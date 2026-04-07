@@ -1,4 +1,5 @@
-﻿using MindMap.Data;
+﻿using MindMap._1_Presentation.Components;
+using MindMap.Data;
 using MindMap.Logical;
 using MindMap.Presentation.Components;
 using System;
@@ -13,6 +14,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using WpfLineDemo;
 
 namespace MindMap._2_Logical
 {
@@ -25,6 +27,68 @@ namespace MindMap._2_Logical
 
         private (ElementBaseData, FrameworkElement)? _delineItem1;
         private DateTime _delineItem1ClickTime;
+
+        // Editor
+        private TextEdit? _activeEditor;
+        private TextElement? _textElementHidden;
+
+
+        public void GlobalInit(MainWindow mainWindow)
+        {
+            Context.CurrProject = new MindMap.Data.MindMapData();
+            Context.Controller = this;
+            Context.MainWindow = mainWindow;
+        }
+
+        public void CanvasClicked(Point mousePosition)
+        {
+            if (_activeEditor != null && _activeEditor.IsActive)
+            {
+                EditorToTextElement(_activeEditor); // ukonči editaci aktuálního prvku
+            }
+
+            ShowNewEditor(mousePosition); // zahájí editaci nového prvku
+        }
+
+        public void TextElementEditRequested(TextElement textElement)
+        {
+            _activeEditor = new TextEdit(textElement.Position, textElement.Text);
+            _textElementHidden = textElement;
+            _textElementHidden.Visibility = Visibility.Hidden;
+        }
+
+
+        public void EditorToTextElement(TextEdit te)
+        {
+            string text = te.Text;
+
+            double x = Canvas.GetLeft(te);
+            double y = Canvas.GetTop(te);
+
+            te.CancelEditor();
+
+            if (_textElementHidden != null)
+            {
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    _textElementHidden.Text = text;
+                }
+                _textElementHidden.Visibility = Visibility.Visible;
+                _textElementHidden = null;
+            }
+            else
+            {
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    NewTextEditingFinished(x, y, text);
+                }
+            }
+        }
+
+        private void ShowNewEditor(Point position)
+        {
+            _activeEditor = new TextEdit(position);
+        }
 
         public void NewTextEditingFinished(double x, double y, string text)
         {
@@ -281,11 +345,6 @@ namespace MindMap._2_Logical
             _items.Clear();
 
             Context.MainWindow.Title = "Mind Map - New project";
-        }
-
-        public void UpdateTextElementText(TextElement textElementToUpdate, string text)
-        {
-            throw new NotImplementedException();
         }
     }
 }
