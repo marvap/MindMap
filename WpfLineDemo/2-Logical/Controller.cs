@@ -22,11 +22,6 @@ namespace MindMap._2_Logical
     {
         private List<(ElementBaseData, FrameworkElement)> _items = new List<(ElementBaseData, FrameworkElement)>();
 
-        private (ElementBaseData, FrameworkElement)? _lineItem1;
-        private DateTime _lineItem1ClickTime;
-
-        private (ElementBaseData, FrameworkElement)? _delineItem1;
-        private DateTime _delineItem1ClickTime;
 
         // Editor
         private TextEdit? _activeEditor;
@@ -40,6 +35,10 @@ namespace MindMap._2_Logical
             Context.MainWindow = mainWindow;
         }
 
+
+
+
+
         public void CanvasClicked(Point mousePosition)
         {
             if (_activeEditor != null && _activeEditor.IsActive)
@@ -49,6 +48,10 @@ namespace MindMap._2_Logical
 
             ShowNewEditor(mousePosition); // zahájí editaci nového prvku
         }
+
+
+        //****************************************
+
 
         public void TextElementEditRequested(TextElement textElement)
         {
@@ -72,6 +75,7 @@ namespace MindMap._2_Logical
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     _textElementHidden.Text = text;
+                    _items.First(i => i.Item2 == _textElementHidden).Item1.Text = text;
                 }
                 _textElementHidden.Visibility = Visibility.Visible;
                 _textElementHidden = null;
@@ -136,6 +140,11 @@ namespace MindMap._2_Logical
             return index;
         }
 
+
+        //*********************************
+
+
+
         public void ElementStartMoving(FrameworkElement element)
         {
             (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
@@ -151,6 +160,18 @@ namespace MindMap._2_Logical
 
             redrawAllLinesOnBackground(); // mohly být poškozeny některé jiné linie
         }
+
+
+
+
+        //*********************************************
+
+        private (ElementBaseData, FrameworkElement)? _lineItem1;
+        private DateTime _lineItem1ClickTime;
+
+        private (ElementBaseData, FrameworkElement)? _delineItem1;
+        private DateTime _delineItem1ClickTime;
+
 
         private void drawAllElementLines((ElementBaseData, FrameworkElement) item, bool visible)
         {
@@ -260,6 +281,13 @@ namespace MindMap._2_Logical
                 }, DispatcherPriority.ContextIdle);
             }
         }
+
+
+
+
+
+        //*****************************************
+
 
         private string DATA_SUBFOLDER = "MindMaps";
 
