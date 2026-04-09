@@ -291,6 +291,8 @@ namespace MindMap._2_Logical
 
         private string DATA_SUBFOLDER = "MindMaps";
 
+        private string _dataSaved;
+
         public void SaveAs()
         {
             string path = Context.CurrFilePath;
@@ -341,6 +343,7 @@ namespace MindMap._2_Logical
             {
                 string content = Context.CurrProject.Serialize();
                 File.WriteAllText(Context.CurrFilePath, content, Encoding.UTF8);
+                _dataSaved = content;
                 Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
             }
         }
@@ -366,11 +369,11 @@ namespace MindMap._2_Logical
 
             if (result.HasValue && result.Value)
             {
+                ConditionalSaveOfCurrentProject();
+
                 string content = File.ReadAllText(dialog.FileName, Encoding.UTF8);
-
-                // TODO dialog na uložení současných dat
-
                 MindMapData mmd = MindMapData.Deserialize(content);
+                _dataSaved = content;
                 Context.MainWindow.MyCanvas.Children.Clear();
 
                 Context.CurrProject = mmd;
@@ -385,7 +388,7 @@ namespace MindMap._2_Logical
 
         public void New()
         {
-            // TODO dialog na uložení současných dat
+            ConditionalSaveOfCurrentProject();
 
             Context.MainWindow.MyCanvas.Children.Clear();
 
@@ -394,6 +397,25 @@ namespace MindMap._2_Logical
             _items.Clear();
 
             Context.MainWindow.Title = "Mind Map - New project";
+        }
+
+        public void ConditionalSaveOfCurrentProject()
+        {
+            string content = Context.CurrProject.Serialize();
+            if (content != _dataSaved && Context.CurrProject.Elements.Any())
+            {
+                var result = MessageBox.Show(
+                    Context.MainWindow,
+                    "Chcete uložit změny?",
+                    "Potvrzení",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    Save();
+                }
+            }
         }
 
     }

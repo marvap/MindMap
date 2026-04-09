@@ -44,6 +44,13 @@ namespace WpfLineDemo
             InitializeComponent();
 
             new MindMap._2_Logical.Controller().GlobalInit(this);
+
+            this.Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            Context.Controller.ConditionalSaveOfCurrentProject();
         }
 
         private void MyCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
