@@ -84,6 +84,10 @@ namespace WpfLineDemo
                     Context.Controller.New();
                 }
             }
+            if (e.Key == Key.Escape)
+            {
+                Context.Controller.ClearSelecttions();
+            }
 
             _keyPressed = e.Key;
         }

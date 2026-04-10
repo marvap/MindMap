@@ -161,7 +161,36 @@ namespace MindMap._2_Logical
             redrawAllLinesOnBackground(); // mohly být poškozeny některé jiné linie
         }
 
+        //** BLOCK ***********************************
 
+        private List<(ElementBaseData, FrameworkElement)> _selectedBlock = new List<(ElementBaseData, FrameworkElement)>();
+
+        public void SetElementAsSelected(FrameworkElement element)
+        {
+            var item = getItem(element);
+            if (!_selectedBlock.Contains(item))
+            {
+                _selectedBlock.Add(item);
+                (element as TextElement).MarkAsSelected();
+            }
+        }
+
+        public void ClearSelecttions()
+        {
+            foreach (var item in _selectedBlock)
+            {
+                (item.Item2 as TextElement).MarkAsUnselected();
+            }
+            _selectedBlock.Clear();
+        }
+
+
+        // UNIVERZÁLNÍ METODY *****=================================
+
+        private (ElementBaseData, FrameworkElement) getItem(FrameworkElement element)
+        {
+            return _items.First(i => i.Item2 == element);
+        }
 
 
         //*********************************************

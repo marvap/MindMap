@@ -55,10 +55,7 @@ namespace MindMap.Presentation.Components
         {
             _ownerWindow = owner;
 
-           // _elementData = null;
-
-            Background = Brushes.LightBlue;
-            BorderBrush = Brushes.SteelBlue;
+            MarkAsUnselected();
             BorderThickness = new Thickness(2);
             CornerRadius = new CornerRadius(2);
             Padding = new Thickness(8);
@@ -70,7 +67,6 @@ namespace MindMap.Presentation.Components
                 TextAlignment = TextAlignment.Left
             };
 
-            // důležité: aby bral myš i když klikneš na text uvnitř
             MouseLeftButtonDown += Element_MouseLeftButtonDown;
             MouseMove += Element_MouseMove;
             MouseLeftButtonUp += Element_MouseLeftButtonUp;
@@ -93,23 +89,34 @@ namespace MindMap.Presentation.Components
         }
 
 
-        void BringToFront(FrameworkElement element)
+        private void bringToFront(FrameworkElement element)
         {
             int index = Context.Controller.SetElementMaxZindex(this);
             Panel.SetZIndex(this, index);
         }
 
+        public void MarkAsSelected()
+        {
+            Background = Brushes.DodgerBlue;
+            BorderBrush = Brushes.DarkBlue;
+        }
+
+        public void MarkAsUnselected()
+        {
+            Background = Brushes.LightBlue;
+            BorderBrush = Brushes.SteelBlue;
+        }
 
         private void Element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (_ownerWindow.KeyPressed == Key.L)
+            if (_ownerWindow.KeyPressed == Key.L) // Line / Link
             {
                 Context.Controller.LineElementSpecified(this);
 
                 e.Handled = true;
                 return;
             }
-            else if (_ownerWindow.KeyPressed == Key.R) // rubber / remove
+            else if (_ownerWindow.KeyPressed == Key.R) // Rubber / Remove
             {
                 if (e.ClickCount == 2)
                 {
@@ -133,6 +140,12 @@ namespace MindMap.Presentation.Components
                 e.Handled = true;
                 return;
             }
+            else if (_ownerWindow.KeyPressed == Key.LeftCtrl || _ownerWindow.KeyPressed == Key.RightCtrl)
+            {
+                Context.Controller.SetElementAsSelected(this);
+                e.Handled = true;
+                return;
+            }
 
             if (e.ClickCount == 2) // dvojklik
             {
@@ -146,7 +159,7 @@ namespace MindMap.Presentation.Components
 
             Context.Controller.ElementStartMoving(_dragElement);
 
-            BringToFront(_dragElement);
+            bringToFront(_dragElement);
             
             _isDragging = true;
 
