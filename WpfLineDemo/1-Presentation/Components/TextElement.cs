@@ -18,18 +18,9 @@ namespace MindMap.Presentation.Components
 {
     public class TextElement : Border
     {
-        //private ElementBaseData _elementData;
-
         private MainWindow _ownerWindow;
 
-        //private static FrameworkElement? _LineElement1;
-        //private static DateTime _LineElementClickTime;
-
-        // Text element
-        private static FrameworkElement? _dragElement;
-        private static bool _isDragging;
-        private static Point _mouseStart;      // pozice myši vůči plátnu při začátku drag
-        private static Point _elementStart;    // původní Left/Top prvku při začátku drag
+        private bool _isDragging;
 
         public string Text
         {
@@ -88,8 +79,7 @@ namespace MindMap.Presentation.Components
             return teRet;
         }
 
-
-        private void bringToFront(FrameworkElement element)
+        public void BringToFront()
         {
             int index = Context.Controller.SetElementMaxZindex(this);
             Panel.SetZIndex(this, index);
@@ -143,59 +133,46 @@ namespace MindMap.Presentation.Components
             else if (_ownerWindow.KeyPressed == Key.LeftCtrl || _ownerWindow.KeyPressed == Key.RightCtrl)
             {
                 Context.Controller.SetElementAsSelected(this);
+
                 e.Handled = true;
                 return;
             }
-
-            if (e.ClickCount == 2) // dvojklik
+            else if (e.ClickCount == 2) // dvojklik
             {
                 Context.Controller.TextElementEditRequested(this);
+
                 e.Handled = true;
                 return;
             }
+            else // čisté uchopení
+            {
+                _isDragging = true;
+                Context.Controller.ElementStartMoving(this, e.GetPosition(_ownerWindow.Canvas));
 
-            _dragElement = (FrameworkElement)sender;
-
-
-            Context.Controller.ElementStartMoving(_dragElement);
-
-            bringToFront(_dragElement);
-            
-            _isDragging = true;
-
-            _mouseStart = e.GetPosition(_ownerWindow.Canvas);
-
-            double left = Canvas.GetLeft(_dragElement);
-            double top = Canvas.GetTop(_dragElement);
-
-            _elementStart = new Point(left, top);
-
-            _dragElement.CaptureMouse(); // od této chvíle dostává move/up i mimo prvek
-            e.Handled = true;
+                this.CaptureMouse(); // od této chvíle dostává move/up i mimo prvek
+                e.Handled = true;
+            }
         }
 
         private void Element_MouseMove(object sender, MouseEventArgs e)
         {
-            if (!_isDragging || _dragElement is null) return;
-
-            Point mouseNow = e.GetPosition(_ownerWindow.Canvas);
-            Vector delta = mouseNow - _mouseStart;
-
-            Canvas.SetLeft(_dragElement, _elementStart.X + delta.X);
-            Canvas.SetTop(_dragElement, _elementStart.Y + delta.Y);
+            if (_isDragging)
+            {
+                Context.Controller.ElementMoveStep(this, e.GetPosition(_ownerWindow.Canvas));
+            }
         }
 
         private void Element_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (_dragElement is null) return;
+            if (_isDragging)
+            {
+                _isDragging = false; // neakceptuj další přesuny (a události)
+                Context.Controller.ElementStopMoving(this, e.GetPosition(_ownerWindow.Canvas));
+                
+                this.ReleaseMouseCapture();
 
-            Context.Controller.UpdateElementCoordinates(_dragElement, Canvas.GetLeft(_dragElement), Canvas.GetTop(_dragElement));
-
-            _isDragging = false;
-            _dragElement.ReleaseMouseCapture();
-            _dragElement = null;
-
-            e.Handled = true;
+                e.Handled = true;
+            }
         }
 
     }

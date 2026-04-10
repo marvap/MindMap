@@ -141,47 +141,77 @@ namespace MindMap._2_Logical
         }
 
 
-        //*********************************
+        //*** MOVING ******************************
 
+        private Point _mouseStartPosition;
+        private List<(ElementBaseData, FrameworkElement)> _movedBlock;
 
-
-        public void ElementStartMoving(FrameworkElement element)
+        public void ElementStartMoving(FrameworkElement element, Point mouseStartPosition)
         {
-            (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
-            drawAllElementLines(item, false);
+            if (isElementInSelectionBlock(element))
+            {
+                _movedBlock = _selectionBlock;
+            }
+            else
+            {
+                _movedBlock = new List<(ElementBaseData, FrameworkElement)>() { getItem(element) };
+            }
+
+            _mouseStartPosition = mouseStartPosition;
+            
+            foreach (var item in _movedBlock)
+            {
+                (item.Item2 as TextElement).BringToFront();
+                drawAllElementLines(item, false); // schovej všechny linie
+            }
         }
 
-        public void UpdateElementCoordinates(FrameworkElement element, double x, double y)
-        { 
-            (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
-            item.Item1.X = x;
-            item.Item1.Y = y;
-            drawAllElementLines(item, true);
+        public void ElementMoveStep(FrameworkElement element, Point mousePosition)
+        {
+            foreach (var item in _movedBlock)
+            {
+                Vector delta = mousePosition - _mouseStartPosition;
+                Canvas.SetLeft(item.Item2, item.Item1.X + delta.X);
+                Canvas.SetTop(item.Item2, item.Item1.Y + delta.Y);
+            }
+        }
+
+        public void ElementStopMoving(FrameworkElement element, Point mouseEndPosition)
+        {
+            foreach (var item in _movedBlock)
+            {
+                Vector delta = mouseEndPosition - _mouseStartPosition;
+                item.Item1.X = item.Item1.X + delta.X;
+                item.Item1.Y = item.Item1.Y + delta.Y;
+                Canvas.SetLeft(item.Item2, item.Item1.X);
+                Canvas.SetTop(item.Item2, item.Item1.Y);
+                //drawAllElementLines(item, true); // bohužel hned nelze, kreslí to chybné čáry
+            }
 
             redrawAllLinesOnBackground(); // mohly být poškozeny některé jiné linie
         }
 
         //** BLOCK ***********************************
 
-        private List<(ElementBaseData, FrameworkElement)> _selectedBlock = new List<(ElementBaseData, FrameworkElement)>();
+        private List<(ElementBaseData, FrameworkElement)> _selectionBlock = new List<(ElementBaseData, FrameworkElement)>();
 
         public void SetElementAsSelected(FrameworkElement element)
         {
             var item = getItem(element);
-            if (!_selectedBlock.Contains(item))
+            if (!_selectionBlock.Contains(item))
             {
-                _selectedBlock.Add(item);
+                _selectionBlock.Add(item);
                 (element as TextElement).MarkAsSelected();
             }
         }
 
         public void ClearSelecttions()
         {
-            foreach (var item in _selectedBlock)
+            foreach (var item in _selectionBlock)
             {
                 (item.Item2 as TextElement).MarkAsUnselected();
             }
-            _selectedBlock.Clear();
+            _selectionBlock.Clear();
         }
 
 
@@ -192,6 +222,10 @@ namespace MindMap._2_Logical
             return _items.First(i => i.Item2 == element);
         }
 
+        private bool isElementInSelectionBlock(FrameworkElement element)
+        {
+            return _selectionBlock.Any(i => i.Item2 == element);
+        }
 
         //*********************************************
 
