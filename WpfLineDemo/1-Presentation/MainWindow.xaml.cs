@@ -50,12 +50,15 @@ namespace WpfLineDemo
 
         private void MainWindow_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
-            Context.Controller.ConditionalSaveOfCurrentProject();
+            Context.Controller.MainWindowIsClosing();
         }
 
         private void MyCanvas_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            Context.Controller.CanvasClicked(e.GetPosition(MyCanvas));
+            if (e.ClickCount == 2)
+            {
+                Context.Controller.CanvasDoubleClicked(e.GetPosition(MyCanvas));
+            }
         }
 
         private void ArrowButton_Click(object sender, RoutedEventArgs e)

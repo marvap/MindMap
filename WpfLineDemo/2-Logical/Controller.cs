@@ -37,9 +37,11 @@ namespace MindMap._2_Logical
 
 
 
-
-
         public void CanvasClicked(Point mousePosition)
+        {
+        }
+
+        public void CanvasDoubleClicked(Point mousePosition)
         {
             if (_activeEditor != null && _activeEditor.IsActive)
             {
@@ -47,6 +49,11 @@ namespace MindMap._2_Logical
             }
 
             ShowNewEditor(mousePosition); // zahájí editaci nového prvku
+        }
+
+        public void MainWindowIsClosing()
+        {
+            conditionalSaveOfCurrentProject();
         }
 
 
@@ -432,7 +439,7 @@ namespace MindMap._2_Logical
 
             if (result.HasValue && result.Value)
             {
-                ConditionalSaveOfCurrentProject();
+                conditionalSaveOfCurrentProject();
 
                 string content = File.ReadAllText(dialog.FileName, Encoding.UTF8);
                 MindMapData mmd = MindMapData.Deserialize(content);
@@ -451,7 +458,7 @@ namespace MindMap._2_Logical
 
         public void New()
         {
-            ConditionalSaveOfCurrentProject();
+            conditionalSaveOfCurrentProject();
 
             Context.MainWindow.MyCanvas.Children.Clear();
 
@@ -462,7 +469,7 @@ namespace MindMap._2_Logical
             Context.MainWindow.Title = "Mind Map - New project";
         }
 
-        public void ConditionalSaveOfCurrentProject()
+        private void conditionalSaveOfCurrentProject()
         {
             string content = Context.CurrProject.Serialize();
             if (content != _dataSaved && Context.CurrProject.Elements.Any())
