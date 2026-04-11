@@ -47,9 +47,7 @@ namespace MindMap.Presentation.Components
             _ownerWindow = owner;
 
             MarkAsUnselected();
-            BorderThickness = new Thickness(2);
             CornerRadius = new CornerRadius(2);
-            Padding = new Thickness(8);
             Child = new TextBlock
             {
                 Text = text,
@@ -89,12 +87,16 @@ namespace MindMap.Presentation.Components
         {
             Background = Brushes.DodgerBlue;
             BorderBrush = Brushes.DarkBlue;
+            BorderThickness = new Thickness(3);
+            Padding = new Thickness(7);
         }
 
         public void MarkAsUnselected()
         {
             Background = Brushes.LightBlue;
             BorderBrush = Brushes.SteelBlue;
+            BorderThickness = new Thickness(2);
+            Padding = new Thickness(8);
         }
 
         private void Element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

@@ -64,23 +64,29 @@ namespace MindMap._1_Presentation.Components
 
         private void ResizeEditorToContent()
         {
-            Size desiredSize = MeasureText(Text, this);
+            string textToMeasure = Text;
+            if (textToMeasure.EndsWith("\n"))
+            {
+                textToMeasure = textToMeasure + "x"; // force him to consider new line as full-fledged content
+            }
+
+            Size desiredSize = MeasureText(textToMeasure);
 
             Width = Math.Max(120, desiredSize.Width + 20);
             Height = Math.Max(30, desiredSize.Height + 20);
         }
 
-        private Size MeasureText(string text, TextBox textBox)
+        private Size MeasureText(string text)
         {
             var ft = new FormattedText(
                 text,
                 CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight,
-                new Typeface(textBox.FontFamily, textBox.FontStyle,
-                             textBox.FontWeight, textBox.FontStretch),
-                textBox.FontSize,
+                new Typeface(this.FontFamily, this.FontStyle,
+                             this.FontWeight, this.FontStretch),
+                this.FontSize,
                 Brushes.Black,
-                VisualTreeHelper.GetDpi(textBox).PixelsPerDip
+                VisualTreeHelper.GetDpi(this).PixelsPerDip
             );
 
             return new Size(ft.Width, ft.Height);
