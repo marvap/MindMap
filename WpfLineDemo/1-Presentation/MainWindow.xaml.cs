@@ -93,10 +93,18 @@ namespace WpfLineDemo
                 {
                     Context.Controller.New();
                 }
+                else if (e.Key == Key.C)
+                {
+                    Context.Controller.Copy();
+                }
+                else if (e.Key == Key.V)
+                {
+                    Context.Controller.Paste();
+                }
             }
             if (e.Key == Key.Escape)
             {
-                Context.Controller.ClearSelecttions();
+                Context.Controller.ClearSelections();
             }
 
             _keyPressed = e.Key;

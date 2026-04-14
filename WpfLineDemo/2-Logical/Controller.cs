@@ -135,7 +135,7 @@ namespace MindMap._2_Logical
 
             _items.Remove(item);
 
-            redrawAllLinesOnBackground();
+            redrawAllLinesOnBackground(Context.CurrProject);
         }
 
         public int SetElementMaxZindex(FrameworkElement element)
@@ -195,7 +195,7 @@ namespace MindMap._2_Logical
                 //drawAllElementLines(item, true); // bohužel hned nelze, kreslí to chybné čáry
             }
 
-            redrawAllLinesOnBackground(); // mohly být poškozeny některé jiné linie
+            redrawAllLinesOnBackground(Context.CurrProject); // mohly být poškozeny některé jiné linie
         }
 
         //** BLOCK ***********************************
@@ -212,7 +212,7 @@ namespace MindMap._2_Logical
             }
         }
 
-        public void ClearSelecttions()
+        public void ClearSelections()
         {
             foreach (var item in _selectionBlock)
             {
@@ -321,9 +321,9 @@ namespace MindMap._2_Logical
             }
         }
 
-        private void drawEverythigFromData()
+        private void drawEverythigFromData(MindMapData mmd)
         {
-            foreach (ElementBaseData ebd in Context.CurrProject.Elements)
+            foreach (ElementBaseData ebd in mmd.Elements)
             {
                 TextElement te = TextElement.CreateTextElement(Context.MainWindow, ebd.X, ebd.Y, ebd.Text);
                 Panel.SetZIndex(te, ebd.Zindex);
@@ -332,17 +332,17 @@ namespace MindMap._2_Logical
                 _items.Add((ebd, te));
             }
 
-            redrawAllLinesOnBackground();
+            redrawAllLinesOnBackground(mmd);
         }
 
-        private void redrawAllLinesOnBackground()
+        private void redrawAllLinesOnBackground(MindMapData mmd)
         { 
-            Task.Run(async () => { await redrawAllLines(); });
+            Task.Run(async () => { await redrawAllLines(mmd); });
         }
 
-        private async Task redrawAllLines()
+        private async Task redrawAllLines(MindMapData mmd)
         {
-            foreach (LineData line in Context.CurrProject.Lines)
+            foreach (LineData line in mmd.Lines)
             {
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
@@ -443,14 +443,14 @@ namespace MindMap._2_Logical
 
                 string content = File.ReadAllText(dialog.FileName, Encoding.UTF8);
                 MindMapData mmd = MindMapData.Deserialize(content);
-                _dataSaved = content;
+                _dataSaved = mmd.Serialize(); // content was normalized while deserializing
                 Context.MainWindow.MyCanvas.Children.Clear();
 
                 Context.CurrProject = mmd;
                 Context.CurrFilePath = dialog.FileName;
                 _items.Clear();
 
-                drawEverythigFromData();
+                drawEverythigFromData(Context.CurrProject);
 
                 Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
             }
@@ -485,6 +485,57 @@ namespace MindMap._2_Logical
                 {
                     Save();
                 }
+            }
+        }
+
+        // *=====================================
+
+        public void Copy()
+        {
+            MindMapData mmd = new MindMapData();
+            foreach (ElementBaseData element in _selectionBlock.Select(sb => sb.Item1))
+            {
+                mmd.Elements.Add(element.Clone());
+            }
+            foreach (LineData line in Context.CurrProject.Lines.Where(l => mmd.Elements.Any(e => e.ID == l.Element1ID) && mmd.Elements.Any(e => e.ID == l.Element2ID)))
+            {
+                mmd.Lines.Add(line.Clone());
+            }
+
+            mmd.Normalize();
+            Clipboard.SetText(mmd.Serialize());
+            
+            ClearSelections();
+        }
+
+
+        public void Paste()
+        {
+            MindMapData mmd = null;
+
+            try
+            {
+                mmd = MindMapData.Deserialize(Clipboard.GetText());
+            }
+            catch
+            {
+                MessageBox.Show("Deserializace se nezdařila!");
+                return;
+            }
+
+            mmd.ShiftIDsByN(Context.CurrProject.GetNextID());
+            mmd.ShiftZindexesByN(Context.CurrProject.GetMaxZindex() + 1);
+            double minX = mmd.GetMinX();
+            double minY = mmd.GetMinY();
+            mmd.ShiftXsByZ(-minX); // TODO - ošetřit nulový posun
+            mmd.ShiftYsByZ(-minY); // dtto
+
+            drawEverythigFromData(mmd);
+
+            foreach (ElementBaseData element in mmd.Elements)
+            {
+                var item = _items.First(i => i.Item1 == element);
+                SetElementAsSelected(item.Item2);
             }
         }
 

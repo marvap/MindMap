@@ -24,5 +24,19 @@ namespace MindMap.Data
         public string Text { get; set; }
         
         public int Zindex { get; set; }
+
+
+        public ElementBaseData Clone()
+        {
+            return new ElementBaseData()
+            {
+                ID = this.ID,
+                Type = this.Type,
+                X = this.X,
+                Y = this.Y,
+                Text = this.Text,
+                Zindex = this.Zindex
+            };
+        }
     }
 }
