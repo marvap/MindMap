@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Shapes;
 
 namespace MindMap.Data
@@ -11,6 +12,8 @@ namespace MindMap.Data
         public List<ElementBaseData> Elements { get; set; } = new List<ElementBaseData>();
 
         public List<LineData> Lines { get; set; } = new List<LineData>();
+
+        public Size WindowSize { get; set; }
 
 
         //public ElementBaseData GetElementData(int elementID)

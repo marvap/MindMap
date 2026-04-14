@@ -411,6 +411,7 @@ namespace MindMap._2_Logical
             }
             else
             {
+                Context.CurrProject.WindowSize = new Size(Context.MainWindow.Width, Context.MainWindow.Height);
                 string content = Context.CurrProject.Serialize();
                 File.WriteAllText(Context.CurrFilePath, content, Encoding.UTF8);
                 _dataSaved = content;
@@ -453,6 +454,11 @@ namespace MindMap._2_Logical
                 drawEverythigFromData(Context.CurrProject);
 
                 Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
+                if (mmd.WindowSize.Width > 50 && mmd.WindowSize.Height > 50)
+                {
+                    Context.MainWindow.Width = mmd.WindowSize.Width;
+                    Context.MainWindow.Height = mmd.WindowSize.Height;
+                }
             }
         }
 
