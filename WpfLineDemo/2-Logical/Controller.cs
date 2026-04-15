@@ -412,6 +412,8 @@ namespace MindMap._2_Logical
             else
             {
                 Context.CurrProject.WindowSize = new Size(Context.MainWindow.Width, Context.MainWindow.Height);
+                Context.CurrProject.WindowState = Context.MainWindow.WindowState == WindowState.Minimized ? WindowState.Normal : Context.MainWindow.WindowState;
+
                 string content = Context.CurrProject.Serialize();
                 File.WriteAllText(Context.CurrFilePath, content, Encoding.UTF8);
                 _dataSaved = content;
@@ -459,6 +461,7 @@ namespace MindMap._2_Logical
                     Context.MainWindow.Width = mmd.WindowSize.Width;
                     Context.MainWindow.Height = mmd.WindowSize.Height;
                 }
+                Context.MainWindow.WindowState = mmd.WindowState;
             }
         }
 
@@ -535,6 +538,15 @@ namespace MindMap._2_Logical
             double minY = mmd.GetMinY();
             mmd.ShiftXsByZ(-minX); // TODO - ošetřit nulový posun
             mmd.ShiftYsByZ(-minY); // dtto
+
+            foreach (ElementBaseData element in mmd.Elements)
+            {
+                Context.CurrProject.Elements.Add(element);
+            }
+            foreach (LineData line in mmd.Lines)
+            { 
+                Context.CurrProject.Lines.Add(line);
+            }
 
             drawEverythigFromData(mmd);
 

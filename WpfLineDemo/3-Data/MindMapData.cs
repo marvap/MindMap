@@ -15,6 +15,7 @@ namespace MindMap.Data
 
         public Size WindowSize { get; set; }
 
+        public WindowState WindowState { get; set; }
 
         //public ElementBaseData GetElementData(int elementID)
         //{
