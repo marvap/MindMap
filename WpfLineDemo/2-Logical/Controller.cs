@@ -43,10 +43,6 @@ namespace MindMap._2_Logical
             }
         }
 
-        public void CanvasClicked(Point mousePosition)
-        {
-        }
-
         public void CanvasDoubleClicked(Point mousePosition)
         {
             if (_activeEditor != null && _activeEditor.IsActive)
@@ -289,6 +285,7 @@ namespace MindMap._2_Logical
 
                 drawTwoElementsLine(_lineItem1.Value, lineItem2, true);
 
+                _lineItem1 = null;
             }
             else
             {
