@@ -189,7 +189,14 @@ namespace WpfLineDemo
                 _selectionAdorner = null;
             }
 
-            SelectItems(selectionRect);
+            if (selectionRect.Width == 0 && selectionRect.Height == 0)
+            {
+                Context.Controller.ClearSelections();
+            }
+            else
+            { 
+                SelectItems(selectionRect);
+            }
         }
 
         private void SelectItems(Rect selectionRect)
