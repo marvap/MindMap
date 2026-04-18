@@ -105,14 +105,16 @@ namespace MindMap._2_Logical
 
         public void NewTextEditingFinished(double x, double y, string text)
         {
-            TextElement te = TextElement.CreateTextElement(Context.MainWindow, x, y, text);
+            int zIndex = Context.CurrProject.GetNextMaxZindex();
+            TextElement te = TextElement.CreateTextElement(Context.MainWindow, x, y, text, zIndex);
             Context.MainWindow.MyCanvas.Children.Add(te);
 
             ElementBaseData elementData = new ElementBaseData()
             {
                 X = x,
                 Y = y,
-                Text = text
+                Text = text,
+                Zindex = zIndex
             };
             Context.CurrProject.Elements.Add(elementData);
 
@@ -143,8 +145,7 @@ namespace MindMap._2_Logical
         public int SetElementMaxZindex(FrameworkElement element)
         {
             (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
-            int index = Context.CurrProject.GetMaxZindex();
-            index++; 
+            int index = Context.CurrProject.GetNextMaxZindex();
             item.Item1.Zindex = index;
             return index;
         }
@@ -328,8 +329,8 @@ namespace MindMap._2_Logical
         {
             foreach (ElementBaseData ebd in mmd.Elements)
             {
-                TextElement te = TextElement.CreateTextElement(Context.MainWindow, ebd.X, ebd.Y, ebd.Text);
-                Panel.SetZIndex(te, ebd.Zindex);
+                TextElement te = TextElement.CreateTextElement(Context.MainWindow, ebd.X, ebd.Y, ebd.Text, ebd.Zindex);
+                // Panel.SetZIndex(te, ebd.Zindex);
                 Context.MainWindow.MyCanvas.Children.Add(te);
 
                 _items.Add((ebd, te));
@@ -536,7 +537,7 @@ namespace MindMap._2_Logical
             }
 
             mmd.ShiftIDsByN(Context.CurrProject.GetNextID());
-            mmd.ShiftZindexesByN(Context.CurrProject.GetMaxZindex() + 1);
+            mmd.ShiftZindexesByN(Context.CurrProject.GetNextMaxZindex());
             double minX = mmd.GetMinX();
             double minY = mmd.GetMinY();
             mmd.ShiftXsByZ(-minX); // TODO - ošetřit nulový posun

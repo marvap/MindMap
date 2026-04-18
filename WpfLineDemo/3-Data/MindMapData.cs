@@ -27,9 +27,9 @@ namespace MindMap.Data
             return !Elements.Any() ? 1 : Elements.Max(e => e.ID) + 1;
         }
 
-        public int GetMaxZindex()
+        public int GetNextMaxZindex()
         {
-            return !Elements.Any() ? 0 : Elements.Max(e => e.Zindex);
+            return (!Elements.Any() ? 0 : Elements.Max(e => e.Zindex)) + 1;
         }
 
         public string Serialize()

@@ -64,12 +64,14 @@ namespace MindMap.Presentation.Components
         /// <summary>
         /// Factory method
         /// </summary>
-        public static TextElement CreateTextElement(MainWindow owner, double x, double y, string text)
+        public static TextElement CreateTextElement(MainWindow owner, double x, double y, string text, int zIndex)
         {
             TextElement teRet = new TextElement(owner, text);
 
             Canvas.SetLeft(teRet, x);
             Canvas.SetTop(teRet, y);
+
+            Panel.SetZIndex(teRet, zIndex);
 
             // bonus: kurzor pro lepší UX
             teRet.Cursor = Cursors.SizeAll;
