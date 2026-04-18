@@ -35,7 +35,13 @@ namespace MindMap._2_Logical
             Context.MainWindow = mainWindow;
         }
 
-
+        public bool IsEditingActive
+        {
+            get
+            {
+                return _activeEditor?.IsActive ?? false;
+            }
+        }
 
         public void CanvasClicked(Point mousePosition)
         {

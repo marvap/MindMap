@@ -97,12 +97,12 @@ namespace WpfLineDemo
                 {
                     Context.Controller.Copy();
                 }
-                else if (e.Key == Key.V)
+                else if (e.Key == Key.V && !Context.Controller.IsEditingActive)
                 {
                     Context.Controller.Paste();
                 }
             }
-            if (e.Key == Key.Escape)
+            if (e.Key == Key.Escape && !Context.Controller.IsEditingActive)
             {
                 Context.Controller.ClearSelections();
             }
