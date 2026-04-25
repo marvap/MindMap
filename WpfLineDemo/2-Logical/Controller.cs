@@ -53,6 +53,11 @@ namespace MindMap._2_Logical
             ShowNewEditor(mousePosition); // zahájí editaci nového prvku
         }
 
+        public void NewTextBeingTyped(Point mousePosition, string text)
+        {
+            ShowNewEditor(mousePosition, text); // zahájí editaci nového prvku
+        }
+
         public void MainWindowIsClosing()
         {
             conditionalSaveOfCurrentProject();
@@ -100,15 +105,15 @@ namespace MindMap._2_Logical
 
         public void StopEditingCond()
         {
-            if (_activeEditor != null && _activeEditor.IsActive)
+            if (IsEditingActive)
             { 
-                EditorToTextElement(_activeEditor);
+                EditorToTextElement(_activeEditor!);
             }
         }
 
-        private void ShowNewEditor(Point position)
+        private void ShowNewEditor(Point position, string? text = null)
         {
-            _activeEditor = new TextEdit(position);
+            _activeEditor = new TextEdit(position, text);
         }
 
         public void NewTextEditingFinished(double x, double y, string text)

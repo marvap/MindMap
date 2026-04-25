@@ -103,14 +103,14 @@ namespace MindMap.Presentation.Components
 
         private void Element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (_ownerWindow.KeyPressed == Key.L) // Line / Link
+            if (Keyboard.IsKeyDown(Key.L)) // Line / Link
             {
                 Context.Controller.LineElementSpecified(this);
 
                 e.Handled = true;
                 return;
             }
-            else if (_ownerWindow.KeyPressed == Key.R) // Rubber / Remove
+            else if (Keyboard.IsKeyDown(Key.R)) // Rubber / Remove
             {
                 if (e.ClickCount == 2)
                 {
@@ -134,7 +134,7 @@ namespace MindMap.Presentation.Components
                 e.Handled = true;
                 return;
             }
-            else if (_ownerWindow.KeyPressed == Key.LeftCtrl || _ownerWindow.KeyPressed == Key.RightCtrl)
+            else if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 Context.Controller.SetElementAsSelected(this);
 

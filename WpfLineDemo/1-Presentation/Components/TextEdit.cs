@@ -16,11 +16,11 @@ namespace MindMap._1_Presentation.Components
         public bool IsActive { get; set; } = true;
 
 
-        public TextEdit(Point position, string text = "", TextElement? teToUpdate = null)
+        public TextEdit(Point position, string? text = "", TextElement? teToUpdate = null)
         {
             MinWidth = 120;
             MinHeight = 30;
-            Text = text;
+            Text = text ?? "";
             AcceptsReturn = true; // víceřádkovost
             TextWrapping = TextWrapping.Wrap;
             VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
@@ -39,7 +39,7 @@ namespace MindMap._1_Presentation.Components
 
             Context.MainWindow.MyCanvas.Children.Add(this);
             this.Focus();
-            this.CaretIndex = 0;
+            this.CaretIndex = Text.Length;
         }
 
         private void TextEdit_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)

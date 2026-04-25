@@ -1,5 +1,5 @@
-﻿using MindMap._1_Presentation.Components;
-using MM = MindMap.Presentation.Components;
+﻿using MindMap._1_Presentation;
+using MindMap._1_Presentation.Components;
 using MindMap.Logical;
 using System.Globalization;
 using System.Text;
@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MM = MindMap.Presentation.Components;
 
 namespace WpfLineDemo
 {
@@ -20,16 +21,7 @@ namespace WpfLineDemo
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Key? _keyPressed;
-
-
-        public Key? KeyPressed
-        {
-            get
-            {
-                return _keyPressed;
-            }
-        }
+        public StringBuilder _textBuffer = new StringBuilder();
 
         public Canvas Canvas
         {
@@ -73,9 +65,46 @@ namespace WpfLineDemo
             MessageBox.Show("Kliknuto na šipku");
         }
 
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        private Point _newTextMousePosition;
+
+        private void Window_TextInput(object sender, TextCompositionEventArgs e)
         {
-            if (_keyPressed == Key.LeftCtrl || _keyPressed == Key.RightCtrl)
+            if (Mouse.GetPosition(MyCanvas) != _newTextMousePosition)
+            { 
+                _textBuffer.Clear(); // polohová diskontinuita
+            }
+
+            if (!Context.Controller.IsEditingActive &&
+                !Keyboard.IsKeyDown(Key.LeftCtrl) && !Keyboard.IsKeyDown(Key.RightCtrl) &&
+                !Keyboard.IsKeyDown(Key.LeftAlt) && !Keyboard.IsKeyDown(Key.RightAlt))
+            {
+                _textBuffer.Append(e.Text);
+                _newTextMousePosition = Mouse.GetPosition(MyCanvas);
+
+                if (_textBuffer.Length >= 4 /*&& !e.*/)
+                {
+                    string text = _textBuffer.ToString();
+                    _textBuffer.Clear();
+                    Context.Controller.NewTextBeingTyped(Mouse.GetPosition(MyCanvas), text);
+                }
+            }
+            else
+            {
+                _textBuffer.Clear();
+            }
+        }
+
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            //System.Diagnostics.Trace.WriteLine("Window: " + e.Key + "   " + _textBuffer.ToString());
+
+            if (e.IsRepeat)
+            {
+                _textBuffer.Clear(); // repeat nemůže generovat text
+            }
+
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 if (e.Key == Key.A)
                 {
@@ -106,13 +135,14 @@ namespace WpfLineDemo
             {
                 Context.Controller.ClearSelections();
             }
-
-            _keyPressed = e.Key;
         }
 
-        private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
+        private void Window_KeyUp(object sender, KeyEventArgs e)
         {
-            _keyPressed = null;
+            //if (KeysPressed.Contains(e.Key))
+            //{
+            //    KeysPressed.Remove(e.Key);
+            //}
         }
 
 
@@ -228,5 +258,6 @@ namespace WpfLineDemo
 
             return new Rect(left, top, element.ActualWidth, element.ActualHeight);
         }
+
     }
 }
