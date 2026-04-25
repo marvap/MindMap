@@ -98,6 +98,14 @@ namespace MindMap._2_Logical
             }
         }
 
+        public void StopEditingCond()
+        {
+            if (_activeEditor != null && _activeEditor.IsActive)
+            { 
+                EditorToTextElement(_activeEditor);
+            }
+        }
+
         private void ShowNewEditor(Point position)
         {
             _activeEditor = new TextEdit(position);

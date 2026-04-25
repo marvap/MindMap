@@ -192,6 +192,7 @@ namespace WpfLineDemo
             if (selectionRect.Width == 0 && selectionRect.Height == 0)
             {
                 Context.Controller.ClearSelections();
+                Context.Controller.StopEditingCond();
             }
             else
             { 
