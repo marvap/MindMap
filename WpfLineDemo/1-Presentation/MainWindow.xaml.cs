@@ -1,6 +1,7 @@
 ﻿using MindMap._1_Presentation;
 using MindMap._1_Presentation.Components;
 using MindMap.Logical;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Windows;
@@ -85,7 +86,31 @@ namespace WpfLineDemo
                 {
                     string text = _textBuffer.ToString();
                     _textBuffer.Clear();
-                    Context.Controller.NewTextBeingTyped(Mouse.GetPosition(MyCanvas), text);
+
+                    //HitTestResult result = VisualTreeHelper.HitTest(MyCanvas, _newTextMousePosition);
+
+                    //if (result != null)
+                    //{
+                    //    DependencyObject obj = result.VisualHit;
+
+                    //    // projdi strom nahoru, dokud nenajdeš Border
+                    //    while (obj != null && !(obj is MM.TextElement))
+                    //    {
+                    //        obj = VisualTreeHelper.GetParent(obj);
+                    //    }
+
+                    //    if (obj is MM.TextElement border)
+                    //    {
+                    //        // myš je nad Borderem
+                    //        MessageBox.Show("Nad Borderem: " + border.Name);
+                    //    }
+                    //    else
+                    //    {
+                    //        // myš je jen nad Canvasem (ne nad Borderem)
+                    //    }
+                    //}
+
+                    Context.Controller.NewTextBeingTyped(_newTextMousePosition, text);
                 }
             }
             else
@@ -102,6 +127,13 @@ namespace WpfLineDemo
             if (e.IsRepeat)
             {
                 _textBuffer.Clear(); // repeat nemůže generovat text
+            }
+
+            if (e.Key == Key.F1)
+            {
+                ShowHelp();
+                e.Handled = true;
+                return;
             }
 
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
@@ -135,6 +167,12 @@ namespace WpfLineDemo
             {
                 Context.Controller.ClearSelections();
             }
+        }
+
+        private void ShowHelp()
+        {
+            var help = new HelpWindow { Owner = this };
+            help.ShowDialog();
         }
 
         private void Window_KeyUp(object sender, KeyEventArgs e)
