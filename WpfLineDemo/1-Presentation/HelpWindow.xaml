@@ -97,8 +97,11 @@
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="L + klik na 2 uzly"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Vytvořit spojnici (L jako Line / Link) – držte L a klikněte postupně na dva uzly (do 4 sekund)"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="O + klik na 2 uzly"/></Border>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Vytvořit orientovanou spojnici (O jako Oriented) – šipka uprostřed míří od prvního ke druhému uzlu"/></Grid>
+                <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="R + klik na 2 uzly"/></Border>
-                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Smazat spojnici mezi dvěma uzly (do 4 sekund)"/></Grid>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Smazat spojnici mezi dvěma uzly (do 4 sekund) – funguje pro oba typy"/></Grid>
 
                 <TextBlock Text="Výběr a schránka" Style="{StaticResource SectionHeader}"/>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>

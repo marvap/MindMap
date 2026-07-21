@@ -143,7 +143,7 @@ namespace MindMap._2_Logical
             List<LineData> linesToRemove = Context.CurrProject.Lines.Where(l => l.Element1ID == item.Item1.ID || l.Element2ID == item.Item1.ID).ToList();
             foreach (LineData lineData in linesToRemove)
             {
-                drawTwoElementsLine(_items.First(i =>i.Item1.ID == lineData.Element1ID), _items.First(i => i.Item1.ID == lineData.Element2ID), false);
+                drawTwoElementsLine(_items.First(i =>i.Item1.ID == lineData.Element1ID), _items.First(i => i.Item1.ID == lineData.Element2ID), false, lineData.Type);
                 Context.CurrProject.Lines.Remove(lineData);
             }
 
@@ -263,21 +263,21 @@ namespace MindMap._2_Logical
         {
             foreach (LineData line in Context.CurrProject.Lines.Where(l => l.Element1ID == item.Item1.ID || l.Element2ID == item.Item1.ID))
             {
-                drawTwoElementsLine(_items.First(i => i.Item1.ID == line.Element1ID), _items.First(i => i.Item1.ID == line.Element2ID), visible);
+                drawTwoElementsLine(_items.First(i => i.Item1.ID == line.Element1ID), _items.First(i => i.Item1.ID == line.Element2ID), visible, line.Type);
             }
         }
 
-        private void drawTwoElementsLine((ElementBaseData, FrameworkElement) item1, (ElementBaseData, FrameworkElement) item2, bool visible)
+        private void drawTwoElementsLine((ElementBaseData, FrameworkElement) item1, (ElementBaseData, FrameworkElement) item2, bool visible, LineTypeEnum type)
         {
             double x1 = item1.Item1.X + item1.Item2.ActualWidth / 2;
             double y1 = item1.Item1.Y + item1.Item2.ActualHeight / 2;
             double x2 = item2.Item1.X + item2.Item2.ActualWidth / 2;
             double y2 = item2.Item1.Y + item2.Item2.ActualHeight / 2;
 
-            LineHelper.DrawLine(Context.MainWindow, x1, y1, x2, y2, visible);
+            LineHelper.DrawLine(Context.MainWindow, x1, y1, x2, y2, visible, type == LineTypeEnum.Oriented);
         }
 
-        public void LineElementSpecified(FrameworkElement element)
+        public void LineElementSpecified(FrameworkElement element, LineTypeEnum type)
         {
             if (_lineItem1 != null && element != _lineItem1.Value.Item2 && DateTime.Now.Subtract(_lineItem1ClickTime).TotalSeconds < 4) // magické 4 s
             {
@@ -292,12 +292,13 @@ namespace MindMap._2_Logical
 
                 LineData lineData = new LineData()
                 {
-                    Element1ID = _lineItem1.Value.Item1.ID,
-                    Element2ID = lineItem2.Item1.ID
+                    Type = type,
+                    Element1ID = _lineItem1.Value.Item1.ID, // od tohoto uzlu...
+                    Element2ID = lineItem2.Item1.ID         // ...k tomuto (směr šipky u orientované spojnice)
                 };
                 Context.CurrProject.Lines.Add(lineData);
 
-                drawTwoElementsLine(_lineItem1.Value, lineItem2, true);
+                drawTwoElementsLine(_lineItem1.Value, lineItem2, true, type);
 
                 _lineItem1 = null;
             }
@@ -328,7 +329,8 @@ namespace MindMap._2_Logical
                 foreach (LineData lineData in linesToRemove)
                 {
                     Context.CurrProject.Lines.Remove(lineData);
-                    drawTwoElementsLine(_delineItem1.Value, delineItem2, false);
+                    // maž ve směru uložené spojnice (kvůli hrotu orientované šipky)
+                    drawTwoElementsLine(_items.First(i => i.Item1.ID == lineData.Element1ID), _items.First(i => i.Item1.ID == lineData.Element2ID), false, lineData.Type);
                 }
             }
             else
@@ -364,7 +366,7 @@ namespace MindMap._2_Logical
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     // práce s UI
-                    drawTwoElementsLine(_items.First(i => i.Item1.ID == line.Element1ID), _items.First(i => i.Item1.ID == line.Element2ID), true);
+                    drawTwoElementsLine(_items.First(i => i.Item1.ID == line.Element1ID), _items.First(i => i.Item1.ID == line.Element2ID), true, line.Type);
                 }, DispatcherPriority.ContextIdle);
             }
         }

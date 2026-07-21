@@ -105,7 +105,14 @@ namespace MindMap.Presentation.Components
         {
             if (Keyboard.IsKeyDown(Key.L)) // Line / Link
             {
-                Context.Controller.LineElementSpecified(this);
+                Context.Controller.LineElementSpecified(this, LineTypeEnum.Simple);
+
+                e.Handled = true;
+                return;
+            }
+            else if (Keyboard.IsKeyDown(Key.O)) // Oriented line
+            {
+                Context.Controller.LineElementSpecified(this, LineTypeEnum.Oriented);
 
                 e.Handled = true;
                 return;

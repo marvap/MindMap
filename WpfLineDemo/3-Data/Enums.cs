@@ -10,7 +10,8 @@ namespace MindMap.Data
     }
 
     public enum LineTypeEnum
-    { 
-        Simple
+    {
+        Simple,
+        Oriented
     }
 }
