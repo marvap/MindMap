@@ -64,9 +64,11 @@ namespace MindMap.Presentation.Components
         /// <summary>
         /// Factory method
         /// </summary>
-        public static TextElement CreateTextElement(MainWindow owner, double x, double y, string text, int zIndex)
+        public static TextElement CreateTextElement(MainWindow owner, double x, double y, string text, int zIndex, double fontSize)
         {
             TextElement teRet = new TextElement(owner, text);
+
+            teRet.SetFontSize(fontSize);
 
             Canvas.SetLeft(teRet, x);
             Canvas.SetTop(teRet, y);
@@ -79,26 +81,85 @@ namespace MindMap.Presentation.Components
             return teRet;
         }
 
+        public void SetFontSize(double fontSize)
+        {
+            if (Child is TextBlock tb)
+            {
+                tb.FontSize = fontSize;
+            }
+        }
+
+        public void SetBold(bool bold)
+        {
+            if (Child is TextBlock tb)
+            {
+                tb.FontWeight = bold ? FontWeights.Bold : FontWeights.Normal;
+            }
+        }
+
+        public void SetItalic(bool italic)
+        {
+            if (Child is TextBlock tb)
+            {
+                tb.FontStyle = italic ? FontStyles.Italic : FontStyles.Normal;
+            }
+        }
+
         public void BringToFront()
         {
             int index = Context.Controller.SetElementMaxZindex(this);
             Panel.SetZIndex(this, index);
         }
 
+        private NodeColorEnum _color = NodeColorEnum.Blue;
+        private bool _selected;
+
+        public void SetColor(NodeColorEnum color)
+        {
+            _color = color;
+            applyBrushes();
+        }
+
         public void MarkAsSelected()
         {
-            Background = Brushes.DodgerBlue;
-            BorderBrush = Brushes.DarkBlue;
+            _selected = true;
+            applyBrushes();
             BorderThickness = new Thickness(2);
             Padding = new Thickness(4);
         }
 
         public void MarkAsUnselected()
         {
-            Background = Brushes.LightBlue;
-            BorderBrush = Brushes.SteelBlue;
+            _selected = false;
+            applyBrushes();
             BorderThickness = new Thickness(1);
             Padding = new Thickness(5);
+        }
+
+        private void applyBrushes()
+        {
+            if (_selected)
+            {
+                Background = Brushes.DodgerBlue;
+                BorderBrush = Brushes.DarkBlue;
+            }
+            else
+            {
+                (Brush background, Brush border) = colorBrushes(_color);
+                Background = background;
+                BorderBrush = border;
+            }
+        }
+
+        private static (Brush background, Brush border) colorBrushes(NodeColorEnum color)
+        {
+            return color switch
+            {
+                NodeColorEnum.Green => (Brushes.LightGreen, Brushes.SeaGreen),
+                NodeColorEnum.Red => (Brushes.LightSalmon, Brushes.IndianRed),
+                NodeColorEnum.Yellow => (Brushes.Khaki, Brushes.DarkKhaki),
+                _ => (Brushes.LightBlue, Brushes.SteelBlue) // Blue (default)
+            };
         }
 
         private void Element_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

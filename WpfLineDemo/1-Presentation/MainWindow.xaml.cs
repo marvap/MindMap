@@ -1,5 +1,6 @@
 ﻿using MindMap._1_Presentation;
 using MindMap._1_Presentation.Components;
+using MindMap.Data;
 using MindMap.Logical;
 using System.Diagnostics;
 using System.Globalization;
@@ -138,7 +139,26 @@ namespace WpfLineDemo
 
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                if (e.Key == Key.A)
+                bool shift = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
+
+                // Ctrl+Shift+B/G/R/Y = node background color (must precede Ctrl+B bold)
+                if (shift && e.Key == Key.B)
+                {
+                    Context.Controller.SetColor(NodeColorEnum.Blue);
+                }
+                else if (shift && e.Key == Key.G)
+                {
+                    Context.Controller.SetColor(NodeColorEnum.Green);
+                }
+                else if (shift && e.Key == Key.R)
+                {
+                    Context.Controller.SetColor(NodeColorEnum.Red);
+                }
+                else if (shift && e.Key == Key.Y)
+                {
+                    Context.Controller.SetColor(NodeColorEnum.Yellow);
+                }
+                else if (e.Key == Key.A)
                 {
                     Context.Controller.SaveAs();
                 }
@@ -161,6 +181,22 @@ namespace WpfLineDemo
                 else if (e.Key == Key.V && !Context.Controller.IsEditingActive)
                 {
                     Context.Controller.Paste();
+                }
+                else if (e.Key == Key.OemPlus || e.Key == Key.Add)
+                {
+                    Context.Controller.ChangeFontSize(+1);
+                }
+                else if (e.Key == Key.OemMinus || e.Key == Key.Subtract)
+                {
+                    Context.Controller.ChangeFontSize(-1);
+                }
+                else if (e.Key == Key.B)
+                {
+                    Context.Controller.ToggleBold();
+                }
+                else if (e.Key == Key.I)
+                {
+                    Context.Controller.ToggleItalic();
                 }
             }
             if (e.Key == Key.Escape && !Context.Controller.IsEditingActive)

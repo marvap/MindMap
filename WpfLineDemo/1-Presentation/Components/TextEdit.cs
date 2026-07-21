@@ -16,7 +16,7 @@ namespace MindMap._1_Presentation.Components
         public bool IsActive { get; set; } = true;
 
 
-        public TextEdit(Point position, string? text = "", TextElement? teToUpdate = null)
+        public TextEdit(Point position, string? text = "", double fontSize = 12, bool bold = false, bool italic = false, TextElement? teToUpdate = null)
         {
             MinWidth = 120;
             MinHeight = 30;
@@ -25,7 +25,9 @@ namespace MindMap._1_Presentation.Components
             TextWrapping = TextWrapping.Wrap;
             VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
             HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
-            FontSize = 12;
+            FontSize = fontSize;
+            FontWeight = bold ? FontWeights.Bold : FontWeights.Normal;
+            FontStyle = italic ? FontStyles.Italic : FontStyles.Normal;
             Padding = new Thickness(6);
             BorderThickness = new Thickness(1);
             BorderBrush = Brushes.SteelBlue;
@@ -90,6 +92,24 @@ namespace MindMap._1_Presentation.Components
             );
 
             return new Size(ft.Width, ft.Height);
+        }
+
+        public void SetFontSize(double fontSize)
+        {
+            FontSize = fontSize;
+            ResizeEditorToContent();
+        }
+
+        public void ToggleBold()
+        {
+            FontWeight = FontWeight == FontWeights.Bold ? FontWeights.Normal : FontWeights.Bold;
+            ResizeEditorToContent();
+        }
+
+        public void ToggleItalic()
+        {
+            FontStyle = FontStyle == FontStyles.Italic ? FontStyles.Normal : FontStyles.Italic;
+            ResizeEditorToContent();
         }
 
         public void CancelEditor()

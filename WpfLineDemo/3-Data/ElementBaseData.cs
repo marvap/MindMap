@@ -22,8 +22,16 @@ namespace MindMap.Data
         public double Y { get; set; }
 
         public string Text { get; set; }
-        
+
         public int Zindex { get; set; }
+
+        public double FontSize { get; set; } = 12;
+
+        public bool Bold { get; set; }
+
+        public bool Italic { get; set; }
+
+        public NodeColorEnum Color { get; set; }
 
 
         public ElementBaseData Clone()
@@ -35,7 +43,11 @@ namespace MindMap.Data
                 X = this.X,
                 Y = this.Y,
                 Text = this.Text,
-                Zindex = this.Zindex
+                Zindex = this.Zindex,
+                FontSize = this.FontSize,
+                Bold = this.Bold,
+                Italic = this.Italic,
+                Color = this.Color
             };
         }
     }

@@ -12,6 +12,8 @@ using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using WpfLineDemo;
@@ -69,7 +71,8 @@ namespace MindMap._2_Logical
 
         public void TextElementEditRequested(TextElement textElement)
         {
-            _activeEditor = new TextEdit(textElement.Position, textElement.Text);
+            ElementBaseData data = _items.First(i => i.Item2 == textElement).Item1;
+            _activeEditor = new TextEdit(textElement.Position, textElement.Text, data.FontSize, data.Bold, data.Italic);
             _textElementHidden = textElement;
             _textElementHidden.Visibility = Visibility.Hidden;
         }
@@ -78,6 +81,9 @@ namespace MindMap._2_Logical
         public void EditorToTextElement(TextEdit te)
         {
             string text = te.Text;
+            double fontSize = te.FontSize;
+            bool bold = te.FontWeight == FontWeights.Bold;
+            bool italic = te.FontStyle == FontStyles.Italic;
 
             double x = Canvas.GetLeft(te);
             double y = Canvas.GetTop(te);
@@ -88,8 +94,22 @@ namespace MindMap._2_Logical
             {
                 if (!string.IsNullOrWhiteSpace(text))
                 {
+                    var item = _items.First(i => i.Item2 == _textElementHidden);
                     _textElementHidden.Text = text;
-                    _items.First(i => i.Item2 == _textElementHidden).Item1.Text = text;
+                    item.Item1.Text = text;
+
+                    // style may have changed during editing -> commit and refresh lines (bounds moved)
+                    if (item.Item1.FontSize != fontSize || item.Item1.Bold != bold || item.Item1.Italic != italic)
+                    {
+                        drawAllElementLines(item, false);
+                        item.Item1.FontSize = fontSize;
+                        item.Item1.Bold = bold;
+                        item.Item1.Italic = italic;
+                        _textElementHidden.SetFontSize(fontSize);
+                        _textElementHidden.SetBold(bold);
+                        _textElementHidden.SetItalic(italic);
+                        redrawAllLinesOnBackground(Context.CurrProject);
+                    }
                 }
                 _textElementHidden.Visibility = Visibility.Visible;
                 _textElementHidden = null;
@@ -98,7 +118,7 @@ namespace MindMap._2_Logical
             {
                 if (!string.IsNullOrWhiteSpace(text))
                 {
-                    NewTextEditingFinished(x, y, text);
+                    NewTextEditingFinished(x, y, text, fontSize, bold, italic);
                 }
             }
         }
@@ -116,20 +136,26 @@ namespace MindMap._2_Logical
             _activeEditor = new TextEdit(position, text);
         }
 
-        public void NewTextEditingFinished(double x, double y, string text)
+        public void NewTextEditingFinished(double x, double y, string text, double fontSize = 12, bool bold = false, bool italic = false)
         {
             int zIndex = Context.CurrProject.GetNextMaxZindex();
-            TextElement te = TextElement.CreateTextElement(Context.MainWindow, x, y, text, zIndex);
-            Context.MainWindow.MyCanvas.Children.Add(te);
 
             ElementBaseData elementData = new ElementBaseData()
             {
                 X = x,
                 Y = y,
                 Text = text,
-                Zindex = zIndex
+                Zindex = zIndex,
+                FontSize = fontSize,
+                Bold = bold,
+                Italic = italic
             };
             Context.CurrProject.Elements.Add(elementData);
+
+            TextElement te = TextElement.CreateTextElement(Context.MainWindow, x, y, text, zIndex, elementData.FontSize);
+            te.SetBold(elementData.Bold);
+            te.SetItalic(elementData.Italic);
+            Context.MainWindow.MyCanvas.Children.Add(te);
 
             _items.Add((elementData, te));
         }
@@ -250,6 +276,127 @@ namespace MindMap._2_Logical
             return _selectionBlock.Any(i => i.Item2 == element);
         }
 
+        private (ElementBaseData, FrameworkElement)? getItemUnderMouse()
+        {
+            Point pos = Mouse.GetPosition(Context.MainWindow.MyCanvas);
+            HitTestResult result = VisualTreeHelper.HitTest(Context.MainWindow.MyCanvas, pos);
+            if (result == null)
+            {
+                return null;
+            }
+
+            DependencyObject obj = result.VisualHit;
+            while (obj != null && obj is not TextElement)
+            {
+                obj = VisualTreeHelper.GetParent(obj);
+            }
+
+            return obj is TextElement te ? _items.First(i => i.Item2 == te) : null;
+        }
+
+        //*** FONT ********************************
+
+        private const double MIN_FONT_SIZE = 4;
+        private const double MAX_FONT_SIZE = 96;
+
+        public void ChangeFontSize(double delta)
+        {
+            // While editing, resize only the editor; the value is committed to the node on finish.
+            if (IsEditingActive)
+            {
+                double editorSize = Math.Clamp(_activeEditor!.FontSize + delta, MIN_FONT_SIZE, MAX_FONT_SIZE);
+                _activeEditor.SetFontSize(editorSize);
+                return;
+            }
+
+            restyleTargets(getStyleTargets(), item =>
+            {
+                double newSize = Math.Clamp(item.Item1.FontSize + delta, MIN_FONT_SIZE, MAX_FONT_SIZE);
+                item.Item1.FontSize = newSize;
+                (item.Item2 as TextElement).SetFontSize(newSize);
+            });
+        }
+
+        public void ToggleBold()
+        {
+            if (IsEditingActive)
+            {
+                _activeEditor!.ToggleBold();
+                return;
+            }
+
+            var targets = getStyleTargets();
+            bool newBold = !targets.All(t => t.Item1.Bold); // all already bold -> off, otherwise -> on
+            restyleTargets(targets, item =>
+            {
+                item.Item1.Bold = newBold;
+                (item.Item2 as TextElement).SetBold(newBold);
+            });
+        }
+
+        public void ToggleItalic()
+        {
+            if (IsEditingActive)
+            {
+                _activeEditor!.ToggleItalic();
+                return;
+            }
+
+            var targets = getStyleTargets();
+            bool newItalic = !targets.All(t => t.Item1.Italic);
+            restyleTargets(targets, item =>
+            {
+                item.Item1.Italic = newItalic;
+                (item.Item2 as TextElement).SetItalic(newItalic);
+            });
+        }
+
+        public void SetColor(NodeColorEnum color)
+        {
+            if (IsEditingActive)
+            {
+                return; // colors apply to displayed nodes only
+            }
+
+            foreach (var item in getStyleTargets()) // color does not change node bounds -> no line refresh
+            {
+                item.Item1.Color = color;
+                (item.Item2 as TextElement).SetColor(color);
+            }
+        }
+
+        private List<(ElementBaseData, FrameworkElement)> getStyleTargets()
+        {
+            if (_selectionBlock.Any())
+            {
+                return _selectionBlock;
+            }
+            var hovered = getItemUnderMouse();
+            return hovered == null
+                ? new List<(ElementBaseData, FrameworkElement)>()
+                : new List<(ElementBaseData, FrameworkElement)> { hovered.Value };
+        }
+
+        private void restyleTargets(List<(ElementBaseData, FrameworkElement)> targets, Action<(ElementBaseData, FrameworkElement)> apply)
+        {
+            if (!targets.Any())
+            {
+                return;
+            }
+
+            foreach (var item in targets)
+            {
+                drawAllElementLines(item, false); // hide connected lines while nodes still have their old size
+            }
+
+            foreach (var item in targets)
+            {
+                apply(item);
+            }
+
+            redrawAllLinesOnBackground(Context.CurrProject); // node bounds changed -> line endpoints moved
+        }
+
         //*********************************************
 
         private (ElementBaseData, FrameworkElement)? _lineItem1;
@@ -344,7 +491,10 @@ namespace MindMap._2_Logical
         {
             foreach (ElementBaseData ebd in mmd.Elements)
             {
-                TextElement te = TextElement.CreateTextElement(Context.MainWindow, ebd.X, ebd.Y, ebd.Text, ebd.Zindex);
+                TextElement te = TextElement.CreateTextElement(Context.MainWindow, ebd.X, ebd.Y, ebd.Text, ebd.Zindex, ebd.FontSize);
+                te.SetBold(ebd.Bold);
+                te.SetItalic(ebd.Italic);
+                te.SetColor(ebd.Color);
                 // Panel.SetZIndex(te, ebd.Zindex);
                 Context.MainWindow.MyCanvas.Children.Add(te);
 

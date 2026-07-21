@@ -14,4 +14,12 @@ namespace MindMap.Data
         Simple,
         Oriented
     }
+
+    public enum NodeColorEnum
+    {
+        Blue,
+        Green,
+        Red,
+        Yellow
+    }
 }
