@@ -298,6 +298,7 @@ namespace MindMap._2_Logical
 
         private const double MIN_FONT_SIZE = 4;
         private const double MAX_FONT_SIZE = 96;
+        private const double DEFAULT_FONT_SIZE = 12;
 
         public void ChangeFontSize(double delta)
         {
@@ -314,6 +315,21 @@ namespace MindMap._2_Logical
                 double newSize = Math.Clamp(item.Item1.FontSize + delta, MIN_FONT_SIZE, MAX_FONT_SIZE);
                 item.Item1.FontSize = newSize;
                 (item.Item2 as TextElement).SetFontSize(newSize);
+            });
+        }
+
+        public void ResetFontSize()
+        {
+            if (IsEditingActive)
+            {
+                _activeEditor!.SetFontSize(DEFAULT_FONT_SIZE);
+                return;
+            }
+
+            restyleTargets(getStyleTargets(), item =>
+            {
+                item.Item1.FontSize = DEFAULT_FONT_SIZE;
+                (item.Item2 as TextElement).SetFontSize(DEFAULT_FONT_SIZE);
             });
         }
 

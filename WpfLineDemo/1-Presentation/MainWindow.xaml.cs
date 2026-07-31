@@ -190,6 +190,10 @@ namespace WpfLineDemo
                 {
                     Context.Controller.ChangeFontSize(-1);
                 }
+                else if (e.Key == Key.D0 || e.Key == Key.NumPad0)
+                {
+                    Context.Controller.ResetFontSize();
+                }
                 else if (e.Key == Key.B)
                 {
                     Context.Controller.ToggleBold();

@@ -100,6 +100,9 @@
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + -"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Zmenšit velikost písma o 1"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + 0"/></Border>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Návrat na výchozí velikost písma (12)"/></Grid>
+                <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + B"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Tučné písmo (přepínač – podruhé zruší)"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
