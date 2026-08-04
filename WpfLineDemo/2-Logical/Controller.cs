@@ -30,11 +30,19 @@ namespace MindMap._2_Logical
         private TextElement? _textElementHidden;
 
 
+        // Hierarchy navigation: path from the root level down to the current one.
+        // owner == null marks the root; owner is the parent-level node that owns this sub-level.
+        private List<(ElementBaseData? owner, MindMapData level)> _levelPath = new();
+
         public void GlobalInit(MainWindow mainWindow)
         {
-            Context.CurrProject = new MindMap.Data.MindMapData();
+            MindMapData root = new MindMap.Data.MindMapData();
+            Context.RootProject = root;
+            Context.CurrProject = root;
             Context.Controller = this;
             Context.MainWindow = mainWindow;
+
+            _levelPath = new List<(ElementBaseData?, MindMapData)> { (null, root) };
         }
 
         public bool IsEditingActive
@@ -511,6 +519,7 @@ namespace MindMap._2_Logical
                 te.SetBold(ebd.Bold);
                 te.SetItalic(ebd.Italic);
                 te.SetColor(ebd.Color);
+                te.SetHasChildLevel(ebd.ChildLevel != null); // ▸ indicator
                 // Panel.SetZIndex(te, ebd.Zindex);
                 Context.MainWindow.MyCanvas.Children.Add(te);
 
@@ -596,10 +605,11 @@ namespace MindMap._2_Logical
             }
             else
             {
-                Context.CurrProject.WindowSize = new Size(Context.MainWindow.Width, Context.MainWindow.Height);
-                Context.CurrProject.WindowState = Context.MainWindow.WindowState == WindowState.Minimized ? WindowState.Normal : Context.MainWindow.WindowState;
+                // Window size is per-level: flush the current level's size; window state is a root-only concern.
+                flushCurrentWindowSize();
+                Context.RootProject.WindowState = Context.MainWindow.WindowState == WindowState.Minimized ? WindowState.Normal : Context.MainWindow.WindowState;
 
-                string content = Context.CurrProject.Serialize();
+                string content = Context.RootProject.Serialize();
                 File.WriteAllText(Context.CurrFilePath, content, Encoding.UTF8);
                 _dataSaved = content;
                 Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
@@ -634,11 +644,12 @@ namespace MindMap._2_Logical
                 _dataSaved = mmd.Serialize(); // content was normalized while deserializing
                 Context.MainWindow.MyCanvas.Children.Clear();
 
-                Context.CurrProject = mmd;
+                resetToRoot(mmd); // root = current level, path reset
                 Context.CurrFilePath = dialog.FileName;
                 _items.Clear();
 
                 drawEverythigFromData(Context.CurrProject);
+                updateNavChrome();
 
                 Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
                 if (mmd.WindowSize.Width > 50 && mmd.WindowSize.Height > 50)
@@ -656,17 +667,26 @@ namespace MindMap._2_Logical
 
             Context.MainWindow.MyCanvas.Children.Clear();
 
-            Context.CurrProject = new MindMapData();
+            resetToRoot(new MindMapData());
             Context.CurrFilePath = null;
             _items.Clear();
 
+            updateNavChrome();
             Context.MainWindow.Title = "Mind Map - New project";
+        }
+
+        /// <summary>Make <paramref name="root"/> both the file root and the current level; reset the navigation path.</summary>
+        private void resetToRoot(MindMapData root)
+        {
+            Context.RootProject = root;
+            Context.CurrProject = root;
+            _levelPath = new List<(ElementBaseData?, MindMapData)> { (null, root) };
         }
 
         private void conditionalSaveOfCurrentProject()
         {
-            string content = Context.CurrProject.Serialize();
-            if (content != _dataSaved && Context.CurrProject.Elements.Any())
+            string content = Context.RootProject.Serialize();
+            if (content != _dataSaved && Context.RootProject.Elements.Any())
             {
                 var result = MessageBox.Show(
                     Context.MainWindow,
@@ -740,6 +760,332 @@ namespace MindMap._2_Logical
                 var item = _items.First(i => i.Item1 == element);
                 SetElementAsSelected(item.Item2);
             }
+        }
+
+        //*** HIERARCHY / SUB-LEVELS ***********************************
+
+        /// <summary>Single Ctrl+click: remember the pre-click selection (for the Ctrl+double-click decision), then add to selection.</summary>
+        public void CtrlClickSelect(FrameworkElement element)
+        {
+            // Snapshot the selection BEFORE this click mutates it — the first click of a
+            // Ctrl+double-click would otherwise poison the "was it selected?" decision.
+            _ctrlGestureSnapshot = _selectionBlock.Select(s => s.Item1).ToList();
+            SetElementAsSelected(element);
+        }
+
+        private List<ElementBaseData>? _ctrlGestureSnapshot;
+
+        /// <summary>Ctrl+double-click on a node: collapse the pre-gesture selection, or plain enter/create its own sub-level.</summary>
+        public void NodeCtrlDoubleClicked(FrameworkElement element)
+        {
+            ElementBaseData node = getItem(element).Item1;
+            List<ElementBaseData> snapshot = _ctrlGestureSnapshot ?? new List<ElementBaseData>();
+            _ctrlGestureSnapshot = null;
+
+            if (snapshot.Contains(node))
+            {
+                // Node was already selected before the gesture -> collapse the selection into a new sub-level.
+                collapseSelectionIntoSubLevel(snapshot, node);
+            }
+            else
+            {
+                // Node was not selected -> ignore the spurious first-click selection and just enter/create its sub-level.
+                ClearSelections();
+                enterOrCreateChildLevel(node);
+            }
+        }
+
+        private void enterOrCreateChildLevel(ElementBaseData owner)
+        {
+            if (owner.ChildLevel == null)
+            {
+                // New sub-level inherits the parent's current window size, then keeps its own.
+                owner.ChildLevel = new MindMapData
+                {
+                    WindowSize = new Size(Context.MainWindow.Width, Context.MainWindow.Height)
+                };
+            }
+            _levelPath.Add((owner, owner.ChildLevel));
+            switchToCurrentLevel();
+        }
+
+        /// <summary>The ⬅ button: go up one level. Auto-prunes an empty level (owner loses its sub-level).</summary>
+        public void NavigateUp()
+        {
+            if (_levelPath.Count <= 1)
+            {
+                return; // already at root
+            }
+
+            StopEditingCond(); // commit any in-progress edit into the level we are leaving
+
+            var leaving = _levelPath[_levelPath.Count - 1];
+            if (leaving.owner != null && leaving.level.Elements.Count == 0)
+            {
+                leaving.owner.ChildLevel = null; // empty sub-level -> prune it (and its existence)
+            }
+
+            _levelPath.RemoveAt(_levelPath.Count - 1);
+            switchToCurrentLevel();
+        }
+
+        /// <summary>Navigate to an explicit path of owner nodes from the root (used by the F2 tree).</summary>
+        public void NavigateToOwnerPath(List<ElementBaseData> owners)
+        {
+            _levelPath = new List<(ElementBaseData?, MindMapData)> { (null, Context.RootProject) };
+            MindMapData level = Context.RootProject;
+            foreach (ElementBaseData owner in owners)
+            {
+                if (owner.ChildLevel == null)
+                {
+                    break; // safety: subtree changed since the tree was built
+                }
+                level = owner.ChildLevel;
+                _levelPath.Add((owner, level));
+            }
+            switchToCurrentLevel();
+        }
+
+        /// <summary>Owner nodes from the root down to (but not including) the root itself — the current path.</summary>
+        public List<ElementBaseData> CurrentOwnerPath()
+        {
+            return _levelPath.Skip(1).Select(p => p.owner!).ToList();
+        }
+
+        /// <summary>Rebuild the canvas from the level at the tip of _levelPath and refresh the nav chrome.</summary>
+        private void switchToCurrentLevel()
+        {
+            StopEditingCond();
+            ClearSelections();
+            flushCurrentWindowSize(); // store the size of the level we are leaving (still Context.CurrProject here)
+
+            // drop transient interaction state that referenced the old level's items
+            _movedBlock = null;
+            _lineItem1 = null;
+            _delineItem1 = null;
+            _ctrlGestureSnapshot = null;
+
+            Context.CurrProject = _levelPath[_levelPath.Count - 1].level;
+
+            Context.MainWindow.MyCanvas.Children.Clear();
+            _items.Clear();
+            drawEverythigFromData(Context.CurrProject);
+
+            // per-level window size
+            Size ws = Context.CurrProject.WindowSize;
+            if (ws.Width > 50 && ws.Height > 50)
+            {
+                Context.MainWindow.Width = ws.Width;
+                Context.MainWindow.Height = ws.Height;
+            }
+
+            updateNavChrome();
+        }
+
+        /// <summary>Rebuild the current level in place (after a data mutation) without touching the path.</summary>
+        private void rebuildCurrentLevel()
+        {
+            Context.MainWindow.MyCanvas.Children.Clear();
+            _items.Clear();
+            drawEverythigFromData(Context.CurrProject);
+        }
+
+        private void flushCurrentWindowSize()
+        {
+            if (Context.CurrProject != null)
+            {
+                Context.CurrProject.WindowSize = new Size(Context.MainWindow.Width, Context.MainWindow.Height);
+            }
+        }
+
+        private void updateNavChrome()
+        {
+            List<string> segments = new List<string> { "root" };
+            foreach (var (owner, _) in _levelPath.Skip(1))
+            {
+                segments.Add(TruncateLabel(owner!.Text, 20));
+            }
+            Context.MainWindow.SetBreadcrumb(segments);
+            Context.MainWindow.SetBackEnabled(_levelPath.Count > 1);
+        }
+
+        /// <summary>Label for breadcrumb/tree: single line, max <paramref name="max"/> chars, no mid-word cut, ends with "...".</summary>
+        public static string TruncateLabel(string? text, int max)
+        {
+            string t = (text ?? "").Replace('\r', ' ').Replace('\n', ' ').Trim();
+            if (t.Length == 0)
+            {
+                return "(prázdné)";
+            }
+            if (t.Length <= max)
+            {
+                return t;
+            }
+            string cut = t.Substring(0, max);
+            int lastSpace = cut.LastIndexOf(' ');
+            if (lastSpace >= max / 2) // only avoid a mid-word cut if it doesn't chop off too much
+            {
+                cut = cut.Substring(0, lastSpace);
+            }
+            return cut.TrimEnd() + "...";
+        }
+
+        //*** DELETE WITH SUB-LEVELS **********************************
+
+        public void ElementDeleteRequested(TextElement textElement)
+        {
+            ElementBaseData data = getItem(textElement).Item1;
+            int subLevels = countSubLevels(data);
+
+            string message = subLevels == 0
+                ? "Opravdu chcete smazat tento element?"
+                : subLevels == 1
+                    ? "Opravdu chcete smazat tento element i s jeho 1 podúrovní?"
+                    : $"Opravdu chcete smazat tento element i s jeho {subLevels} podúrovněmi?";
+
+            var result = MessageBox.Show(
+                Context.MainWindow,
+                message,
+                "Potvrzení",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                ElementRemovalRequested(textElement); // removing the node removes its whole subtree (ChildLevel is a field)
+            }
+        }
+
+        /// <summary>Count of sub-levels in the whole subtree of <paramref name="e"/> (levels, not nodes; recursive).</summary>
+        private int countSubLevels(ElementBaseData e)
+        {
+            if (e.ChildLevel == null)
+            {
+                return 0;
+            }
+            int count = 1;
+            foreach (ElementBaseData child in e.ChildLevel.Elements)
+            {
+                count += countSubLevels(child);
+            }
+            return count;
+        }
+
+        //*** GROUP-COLLAPSE INTO A SUB-LEVEL ************************
+
+        private void collapseSelectionIntoSubLevel(List<ElementBaseData> selection, ElementBaseData over)
+        {
+            MindMapData parent = Context.CurrProject;
+            HashSet<int> selIds = new HashSet<int>(selection.Select(e => e.ID));
+
+            // internal edge = both endpoints selected; external = exactly one endpoint selected
+            List<LineData> internalEdges = parent.Lines
+                .Where(l => selIds.Contains(l.Element1ID) && selIds.Contains(l.Element2ID)).ToList();
+            List<LineData> externalEdges = parent.Lines
+                .Where(l => selIds.Contains(l.Element1ID) ^ selIds.Contains(l.Element2ID)).ToList();
+
+            // Group external edges by the outside node and reroute them onto the group node.
+            // For an oriented edge, arrowFromGroup == true means the arrow points group -> outside.
+            Dictionary<int, List<(LineTypeEnum type, bool arrowFromGroup)>> byOutside = new();
+            foreach (LineData l in externalEdges)
+            {
+                bool firstInside = selIds.Contains(l.Element1ID);
+                int outsideId = firstInside ? l.Element2ID : l.Element1ID;
+                bool arrowFromGroup = l.Type == LineTypeEnum.Oriented && firstInside; // Element1 -> Element2
+                if (!byOutside.TryGetValue(outsideId, out var list))
+                {
+                    list = new List<(LineTypeEnum, bool)>();
+                    byOutside[outsideId] = list;
+                }
+                list.Add((l.Type, arrowFromGroup));
+            }
+
+            // Detect ambiguous duplicates BEFORE mutating anything; abort on ambiguity.
+            Dictionary<int, (LineTypeEnum type, bool arrowFromGroup)> rerouted = new();
+            foreach (var kv in byOutside)
+            {
+                bool hasSimple = kv.Value.Any(x => x.type == LineTypeEnum.Simple);
+                List<bool> orientedDirs = kv.Value
+                    .Where(x => x.type == LineTypeEnum.Oriented)
+                    .Select(x => x.arrowFromGroup).Distinct().ToList();
+
+                if (hasSimple && orientedDirs.Count > 0)
+                {
+                    MessageBox.Show(Context.MainWindow,
+                        "Sbalení nelze provést: mezi skupinovým uzlem a jedním uzlem by vznikla zároveň neorientovaná i orientovaná spojnice (nejednoznačné).",
+                        "Nejednoznačné relace", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                if (orientedDirs.Count > 1)
+                {
+                    MessageBox.Show(Context.MainWindow,
+                        "Sbalení nelze provést: mezi skupinovým uzlem a jedním uzlem by vznikly dvě opačně orientované spojnice (nejednoznačné).",
+                        "Nejednoznačné relace", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                rerouted[kv.Key] = orientedDirs.Count == 1
+                    ? (LineTypeEnum.Oriented, orientedDirs[0])
+                    : (LineTypeEnum.Simple, false);
+            }
+
+            // ---- validation passed: mutate the data model ----
+
+            // Build the sub-level from copies of the selected nodes + their internal edges.
+            MindMapData child = new MindMapData
+            {
+                WindowSize = new Size(Context.MainWindow.Width, Context.MainWindow.Height)
+            };
+            foreach (ElementBaseData e in selection)
+            {
+                child.Elements.Add(e.Clone()); // as-is (keeps positions + any own sub-levels)
+            }
+            foreach (LineData l in internalEdges)
+            {
+                child.Lines.Add(l.Clone());
+            }
+            child.Normalize();
+
+            // The group node replaces the selection at the cursor node's position; it owns the sub-level.
+            ElementBaseData group = new ElementBaseData
+            {
+                X = over.X,
+                Y = over.Y,
+                Text = "",
+                Zindex = parent.GetNextMaxZindex(),
+                ChildLevel = child
+            };
+
+            // Remove selected nodes and every edge touching them from the parent level.
+            parent.Elements.RemoveAll(e => selIds.Contains(e.ID));
+            parent.Lines.RemoveAll(l => selIds.Contains(l.Element1ID) || selIds.Contains(l.Element2ID));
+
+            parent.Elements.Add(group);
+
+            // Add the (deduplicated) rerouted external edges onto the group node.
+            foreach (var kv in rerouted)
+            {
+                int outsideId = kv.Key;
+                (LineTypeEnum type, bool arrowFromGroup) = kv.Value;
+                LineData nl = new LineData { Type = type };
+                if (type == LineTypeEnum.Oriented && !arrowFromGroup)
+                {
+                    nl.Element1ID = outsideId;  // arrow outside -> group
+                    nl.Element2ID = group.ID;
+                }
+                else
+                {
+                    nl.Element1ID = group.ID;   // simple, or arrow group -> outside
+                    nl.Element2ID = outsideId;
+                }
+                parent.Lines.Add(nl);
+            }
+
+            // Rebuild the level and open the fresh group node for editing.
+            ClearSelections(); // selection block still points at the now-removed nodes
+            rebuildCurrentLevel();
+            var groupItem = _items.First(i => i.Item1 == group);
+            TextElementEditRequested((TextElement)groupItem.Item2);
         }
 
     }

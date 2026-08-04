@@ -22,15 +22,19 @@ namespace MindMap.Presentation.Components
 
         private bool _isDragging;
 
+        // Inner visual: [ text ][ ▸ sub-level indicator ] inside the Border.
+        private readonly TextBlock _textBlock;
+        private readonly TextBlock _indicator;
+
         public string Text
         {
-            get 
+            get
             {
-                return (Child as TextBlock)?.Text;
+                return _textBlock.Text;
             }
             set
             {
-                (Child as TextBlock)?.Text = value;
+                _textBlock.Text = value;
             }
         }
 
@@ -48,12 +52,30 @@ namespace MindMap.Presentation.Components
 
             MarkAsUnselected();
             CornerRadius = new CornerRadius(1);
-            Child = new TextBlock
+
+            _textBlock = new TextBlock
             {
                 Text = text,
                 FontSize = 12,
                 TextWrapping = TextWrapping.Wrap,
-                TextAlignment = TextAlignment.Left
+                TextAlignment = TextAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            _indicator = new TextBlock
+            {
+                Text = "▸", // ▸ shown only when the node owns a sub-level
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromRgb(0x20, 0x20, 0x20)), // dark: contrasts on all node colors + DodgerBlue
+                Margin = new Thickness(5, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Visibility = Visibility.Collapsed
+            };
+
+            Child = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                Children = { _textBlock, _indicator }
             };
 
             MouseLeftButtonDown += Element_MouseLeftButtonDown;
@@ -83,26 +105,24 @@ namespace MindMap.Presentation.Components
 
         public void SetFontSize(double fontSize)
         {
-            if (Child is TextBlock tb)
-            {
-                tb.FontSize = fontSize;
-            }
+            _textBlock.FontSize = fontSize;
+            _indicator.FontSize = fontSize; // keep the ▸ in scale with the node text
         }
 
         public void SetBold(bool bold)
         {
-            if (Child is TextBlock tb)
-            {
-                tb.FontWeight = bold ? FontWeights.Bold : FontWeights.Normal;
-            }
+            _textBlock.FontWeight = bold ? FontWeights.Bold : FontWeights.Normal;
         }
 
         public void SetItalic(bool italic)
         {
-            if (Child is TextBlock tb)
-            {
-                tb.FontStyle = italic ? FontStyles.Italic : FontStyles.Normal;
-            }
+            _textBlock.FontStyle = italic ? FontStyles.Italic : FontStyles.Normal;
+        }
+
+        /// <summary>Show/hide the ▸ indicator that marks a node owning a sub-level.</summary>
+        public void SetHasChildLevel(bool hasChildLevel)
+        {
+            _indicator.Visibility = hasChildLevel ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void BringToFront()
@@ -182,17 +202,8 @@ namespace MindMap.Presentation.Components
             {
                 if (e.ClickCount == 2)
                 {
-                    var result = MessageBox.Show(
-                        Context.MainWindow,
-                        "Opravdu chcete smazat tento element?",
-                        "Potvrzení",
-                        MessageBoxButton.YesNo,
-                        MessageBoxImage.Question);
-
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        Context.Controller.ElementRemovalRequested(this);
-                    }
+                    // Controller handles the confirm (and counts sub-levels if any).
+                    Context.Controller.ElementDeleteRequested(this);
                 }
                 else
                 {
@@ -204,7 +215,15 @@ namespace MindMap.Presentation.Components
             }
             else if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
-                Context.Controller.SetElementAsSelected(this);
+                if (e.ClickCount == 2)
+                {
+                    // Ctrl+double-click: enter/create sub-level, or collapse the pre-gesture selection.
+                    Context.Controller.NodeCtrlDoubleClicked(this);
+                }
+                else
+                {
+                    Context.Controller.CtrlClickSelect(this);
+                }
 
                 e.Handled = true;
                 return;

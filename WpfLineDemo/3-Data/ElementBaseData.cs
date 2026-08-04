@@ -33,6 +33,13 @@ namespace MindMap.Data
 
         public NodeColorEnum Color { get; set; }
 
+        /// <summary>
+        /// Optional nested sub-map owned by this node (hierarchy). Null for a plain node.
+        /// Additive + nullable on purpose: old flat .mmd files (without this field)
+        /// deserialize to null and keep working unchanged.
+        /// </summary>
+        public MindMapData? ChildLevel { get; set; }
+
 
         public ElementBaseData Clone()
         {
@@ -47,7 +54,8 @@ namespace MindMap.Data
                 FontSize = this.FontSize,
                 Bold = this.Bold,
                 Italic = this.Italic,
-                Color = this.Color
+                Color = this.Color,
+                ChildLevel = this.ChildLevel?.DeepClone() // deep-clone the whole subtree
             };
         }
     }

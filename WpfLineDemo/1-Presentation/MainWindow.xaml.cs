@@ -64,7 +64,25 @@ namespace WpfLineDemo
 
         private void ArrowButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Kliknuto na šipku");
+            Context.Controller.NavigateUp();
+        }
+
+        /// <summary>Set the breadcrumb text from level segments (root first).</summary>
+        public void SetBreadcrumb(IReadOnlyList<string> segments)
+        {
+            BreadcrumbText.Text = string.Join("  ▸  ", segments);
+        }
+
+        /// <summary>Enable/disable the ⬅ back button (disabled at the root level).</summary>
+        public void SetBackEnabled(bool enabled)
+        {
+            ArrowButton.IsEnabled = enabled;
+        }
+
+        private void ShowTree()
+        {
+            var tree = new TreeWindow { Owner = this };
+            tree.ShowDialog();
         }
 
         private Point _newTextMousePosition;
@@ -133,6 +151,13 @@ namespace WpfLineDemo
             if (e.Key == Key.F1)
             {
                 ShowHelp();
+                e.Handled = true;
+                return;
+            }
+
+            if (e.Key == Key.F2)
+            {
+                ShowTree();
                 e.Handled = true;
                 return;
             }

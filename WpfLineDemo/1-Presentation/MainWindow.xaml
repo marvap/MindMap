@@ -1,4 +1,4 @@
-﻿<Window x:Class="WpfLineDemo.MainWindow"
+<Window x:Class="WpfLineDemo.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Mind Map - New project" Height="800" Width="1600"
@@ -6,14 +6,34 @@
         KeyUp="Window_KeyUp"
         TextInput="Window_TextInput">
 
-    <Canvas Name="MyCanvas" Background="White"
-            MouseLeftButtonDown="MyCanvas_MouseLeftButtonDown">
+    <DockPanel>
+        <!-- Breadcrumb bar: full width, right under the top edge -->
+        <Border DockPanel.Dock="Top"
+                Background="#F0F0F0"
+                BorderBrush="#D0D0D0"
+                BorderThickness="0,0,0,1"
+                Padding="8,4">
+            <TextBlock x:Name="BreadcrumbText"
+                       Text="root"
+                       FontSize="13"
+                       VerticalAlignment="Center" />
+        </Border>
+
+        <!-- Back / up-one-level button: small, left-aligned, just below the breadcrumb -->
         <Button x:Name="ArrowButton"
-            Width="28"
-            Height="28"
-            Click="ArrowButton_Click">
-            <TextBlock Text="➜" FontSize="16" />
+                DockPanel.Dock="Top"
+                Width="28"
+                Height="28"
+                HorizontalAlignment="Left"
+                Margin="8,4"
+                IsEnabled="False"
+                Click="ArrowButton_Click">
+            <TextBlock Text="⬅" FontSize="16" />
         </Button>
-    </Canvas>
+
+        <!-- Working area fills the remaining space -->
+        <Canvas Name="MyCanvas" Background="White"
+                MouseLeftButtonDown="MyCanvas_MouseLeftButtonDown" />
+    </DockPanel>
 
 </Window>

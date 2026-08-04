@@ -1,0 +1,51 @@
+<Window x:Class="WpfLineDemo.TreeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Hierarchie – Mind Map"
+        Height="560" Width="460"
+        MinHeight="320" MinWidth="320"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="#FFF7F9FC"
+        KeyDown="TreeWindow_KeyDown">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF4A6FA5" Padding="20,14">
+            <StackPanel>
+                <TextBlock Text="Hierarchie podúrovní"
+                           FontSize="18" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Dvojklikem na úroveň se do ní přepnete. Aktuální úroveň je tučně."
+                           FontSize="12" Foreground="#FFD6E0EE" Margin="0,4,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Tree -->
+        <TreeView x:Name="Tree" Grid.Row="1" Margin="12"
+                  BorderThickness="1" BorderBrush="#FFD5DCE5"
+                  MouseDoubleClick="Tree_MouseDoubleClick">
+            <TreeView.Resources>
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="True"/>
+                    <Setter Property="Padding" Value="2,1"/>
+                </Style>
+            </TreeView.Resources>
+        </TreeView>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#FFECEFF4" BorderBrush="#FFD5DCE5" BorderThickness="0,1,0,0" Padding="20,10">
+            <Grid>
+                <TextBlock Text="Zavřete klávesou Esc nebo F2." VerticalAlignment="Center"
+                           FontSize="12" Foreground="#FF6B7785"/>
+                <Button Content="Zavřít" HorizontalAlignment="Right" Padding="18,5"
+                        IsDefault="True" IsCancel="True" Click="CloseButton_Click"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

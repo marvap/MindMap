@@ -99,6 +99,33 @@ namespace MindMap.Data
                 var item = zindexesMap.First(i => i.Item1 == element.Zindex);
                 element.Zindex = item.Item2;
             }
+
+            // Recurse into sub-levels — each level has its own independent ID space.
+            foreach (ElementBaseData element in Elements)
+            {
+                element.ChildLevel?.Normalize();
+            }
+        }
+
+        /// <summary>
+        /// Deep copy of this whole level, including nested sub-levels.
+        /// </summary>
+        public MindMapData DeepClone()
+        {
+            MindMapData clone = new MindMapData()
+            {
+                WindowSize = this.WindowSize,
+                WindowState = this.WindowState
+            };
+            foreach (ElementBaseData element in Elements)
+            {
+                clone.Elements.Add(element.Clone()); // Clone() deep-clones ChildLevel too
+            }
+            foreach (LineData line in Lines)
+            {
+                clone.Lines.Add(line.Clone());
+            }
+            return clone;
         }
 
         public void ShiftIDsByN(int n)

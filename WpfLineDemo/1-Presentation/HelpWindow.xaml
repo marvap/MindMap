@@ -151,6 +151,20 @@
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Esc"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Zrušit editaci (u nového prázdného uzlu ho zahodí)"/></Grid>
 
+                <TextBlock Text="Hierarchie (podúrovně)" Style="{StaticResource SectionHeader}"/>
+                <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + dvojklik na uzel"/></Border>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Vejít do podúrovně uzlu (pokud nemá, vytvoří se). Uzel s podúrovní je označen značkou ▸"/></Grid>
+                <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + dvojklik na výběr"/></Border>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Sbalit vybrané uzly do nové podúrovně – na aktuální úrovni je nahradí jeden skupinový uzel (relace se přesměrují na něj)"/></Grid>
+                <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="⬅ (tlačítko nahoře)"/></Border>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="O úroveň zpět. Prázdná podúroveň se při odchodu automaticky zruší. Cesta je vidět v pruhu nahoře (breadcrumb)"/></Grid>
+                <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="F2"/></Border>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Zobrazit strom celé hierarchie; dvojklikem na úroveň se do ní přepnete"/></Grid>
+
                 <TextBlock Text="Nápověda" Style="{StaticResource SectionHeader}"/>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="F1"/></Border>
