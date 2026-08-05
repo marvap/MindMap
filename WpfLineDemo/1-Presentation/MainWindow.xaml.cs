@@ -177,6 +177,13 @@ namespace WpfLineDemo
                 return;
             }
 
+            if (e.Key == Key.F3)
+            {
+                Context.Controller.FindNext(); // next search match (or the Ctrl+F dialog if none active)
+                e.Handled = true;
+                return;
+            }
+
             if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
             {
                 bool shift = Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift);
@@ -245,6 +252,10 @@ namespace WpfLineDemo
                 else if (e.Key == Key.D)
                 {
                     Context.Controller.SetDateForNodeUnderMouse();
+                }
+                else if (e.Key == Key.F)
+                {
+                    Context.Controller.OpenSearchDialog();
                 }
             }
             if (e.Key == Key.Escape && !Context.Controller.IsEditingActive)

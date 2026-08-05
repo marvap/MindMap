@@ -688,6 +688,7 @@ namespace MindMap._2_Logical
             Context.RootProject = root;
             Context.CurrProject = root;
             _levelPath = new List<(ElementBaseData?, MindMapData)> { (null, root) };
+            resetSearch(); // a new/opened document invalidates any active search
         }
 
         private void conditionalSaveOfCurrentProject()
@@ -1158,6 +1159,148 @@ namespace MindMap._2_Logical
             {
                 SetElementAsSelected(item.Item2);
             }
+        }
+
+        //*** SEARCH (Ctrl+F / F3) **********************************
+
+        private string? _searchTerm;
+        // Snapshot of matches taken at search start; each = (owner path to its level, the element).
+        private List<(List<ElementBaseData> ownerPath, ElementBaseData element)>? _searchMatches;
+        private int _searchIndex = -1; // index of the currently selected match (-1 = none yet)
+
+        /// <summary>Ctrl+F (and F3 with no prior search): ask for the text, then start a fresh search.</summary>
+        public void OpenSearchDialog()
+        {
+            StopEditingCond();
+
+            var dialog = new SearchDialog(_searchTerm ?? "") { Owner = Context.MainWindow };
+            if (dialog.ShowDialog() != true)
+            {
+                return; // Zrušit / Esc -> keep the previous term, no change
+            }
+
+            string term = dialog.SearchText;
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                MessageBox.Show(Context.MainWindow,
+                    "Byl vložen prázdný text, prohledávání se neprovede.",
+                    "Prohledávání", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            startSearch(term);
+        }
+
+        /// <summary>F3: select the next match. With no active search, opens the Ctrl+F dialog instead.</summary>
+        public void FindNext()
+        {
+            if (_searchTerm == null)
+            {
+                OpenSearchDialog(); // nothing searched yet -> let the user enter a term
+                return;
+            }
+
+            StopEditingCond();
+
+            if (_searchMatches == null || _searchMatches.Count == 0 || _searchIndex >= _searchMatches.Count - 1)
+            {
+                MessageBox.Show(Context.MainWindow,
+                    "Žádný další výskyt.",
+                    "Prohledávání", MessageBoxButton.OK, MessageBoxImage.Information);
+                _searchIndex = -1; // reset: the next F3 starts over from the first match
+                return;
+            }
+
+            _searchIndex++;
+            selectMatch(_searchMatches[_searchIndex]);
+        }
+
+        private void startSearch(string term)
+        {
+            _searchTerm = term;
+            _searchMatches = buildMatchList(term);
+            _searchIndex = -1;
+
+            if (_searchMatches.Count == 0)
+            {
+                MessageBox.Show(Context.MainWindow,
+                    $"Hledaný text „{term}“ nebyl nalezen.",
+                    "Prohledávání", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            _searchIndex = 0;
+            selectMatch(_searchMatches[0]);
+        }
+
+        /// <summary>Ordered matches: current level first (top-to-bottom, left-to-right), then the rest of the tree (DFS).</summary>
+        private List<(List<ElementBaseData> ownerPath, ElementBaseData element)> buildMatchList(string term)
+        {
+            var levels = new List<(List<ElementBaseData> path, MindMapData level)>();
+            collectLevels(Context.RootProject, new List<ElementBaseData>(), levels);
+
+            // Rotate so the current level is searched first; the rest keep their DFS order (order is not important).
+            int idx = levels.FindIndex(l => l.level == Context.CurrProject);
+            if (idx < 0)
+            {
+                idx = 0;
+            }
+            IEnumerable<(List<ElementBaseData> path, MindMapData level)> ordered = levels.Skip(idx).Concat(levels.Take(idx));
+
+            var result = new List<(List<ElementBaseData>, ElementBaseData)>();
+            foreach (var (path, level) in ordered)
+            {
+                foreach (ElementBaseData e in level.Elements
+                    .Where(e => (e.Text ?? "").Contains(term, StringComparison.CurrentCultureIgnoreCase))
+                    .OrderBy(e => e.Y).ThenBy(e => e.X)) // shora dolů, zleva doprava
+                {
+                    result.Add((path, e));
+                }
+            }
+            return result;
+        }
+
+        /// <summary>DFS pre-order collect of every level with the owner path that reaches it.</summary>
+        private void collectLevels(MindMapData level, List<ElementBaseData> path, List<(List<ElementBaseData>, MindMapData)> acc)
+        {
+            acc.Add((new List<ElementBaseData>(path), level));
+            foreach (ElementBaseData e in level.Elements.Where(e => e.ChildLevel != null))
+            {
+                path.Add(e);
+                collectLevels(e.ChildLevel!, path, acc);
+                path.RemoveAt(path.Count - 1);
+            }
+        }
+
+        private void selectMatch((List<ElementBaseData> ownerPath, ElementBaseData element) match)
+        {
+            if (pathsEqual(CurrentOwnerPath(), match.ownerPath))
+            {
+                // Same level -> just reselect without rebuilding the canvas.
+                ClearSelections();
+                var item = _items.FirstOrDefault(i => i.Item1 == match.element);
+                if (item.Item2 != null)
+                {
+                    SetElementAsSelected(item.Item2);
+                }
+            }
+            else
+            {
+                NavigateToElementInLevel(match.ownerPath, match.element); // switch level + select
+            }
+        }
+
+        private static bool pathsEqual(List<ElementBaseData> a, List<ElementBaseData> b)
+        {
+            return a.Count == b.Count && a.SequenceEqual(b);
+        }
+
+        /// <summary>Forget the current search (called when the whole document is replaced).</summary>
+        private void resetSearch()
+        {
+            _searchTerm = null;
+            _searchMatches = null;
+            _searchIndex = -1;
         }
 
     }
