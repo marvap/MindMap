@@ -520,6 +520,7 @@ namespace MindMap._2_Logical
                 te.SetItalic(ebd.Italic);
                 te.SetColor(ebd.Color);
                 te.SetHasChildLevel(ebd.ChildLevel != null); // ▸ indicator
+                te.SetHasDate(ebd.Date != null);             // ◷ date glyph
                 // Panel.SetZIndex(te, ebd.Zindex);
                 Context.MainWindow.MyCanvas.Children.Add(te);
 
@@ -658,6 +659,12 @@ namespace MindMap._2_Logical
                     Context.MainWindow.Height = mmd.WindowSize.Height;
                 }
                 Context.MainWindow.WindowState = mmd.WindowState;
+
+                // Auto-open the date overview if anything in the hierarchy has a date.
+                if (CollectDatedElements().Any())
+                {
+                    Context.MainWindow.ShowDateOverview();
+                }
             }
         }
 
@@ -1088,5 +1095,87 @@ namespace MindMap._2_Logical
             TextElementEditRequested((TextElement)groupItem.Item2);
         }
 
+        //*** DATE / PLANNING ****************************************
+
+        /// <summary>Ctrl+D: set/change/remove the date of the node under the mouse (only that one node).</summary>
+        public void SetDateForNodeUnderMouse()
+        {
+            if (IsEditingActive)
+            {
+                return; // like colors: dates apply to displayed nodes, not while editing
+            }
+
+            var hovered = getItemUnderMouse();
+            if (hovered == null)
+            {
+                return; // no node under the mouse -> ignore
+            }
+            var item = hovered.Value;
+
+            var dialog = new DatePickerDialog(item.Item1.Date) { Owner = Context.MainWindow };
+            if (dialog.ShowDialog() != true)
+            {
+                return; // Esc / Zrušit -> no change
+            }
+
+            // Toggling the ◷ glyph changes the node width, so refresh connected lines.
+            drawAllElementLines(item, false);
+            item.Item1.Date = dialog.SelectedDate; // null when removed
+            (item.Item2 as TextElement).SetHasDate(item.Item1.Date != null);
+            redrawAllLinesOnBackground(Context.CurrProject);
+        }
+
+        /// <summary>All dated elements across the whole hierarchy (root + every sub-level, recursive).</summary>
+        public List<DatedElementInfo> CollectDatedElements()
+        {
+            List<DatedElementInfo> result = new List<DatedElementInfo>();
+            collectDatedElements(Context.RootProject, new List<ElementBaseData>(), result);
+            return result;
+        }
+
+        private void collectDatedElements(MindMapData level, List<ElementBaseData> ownerPath, List<DatedElementInfo> result)
+        {
+            foreach (ElementBaseData e in level.Elements)
+            {
+                if (e.Date != null)
+                {
+                    result.Add(new DatedElementInfo(e.Date.Value, e.Text, new List<ElementBaseData>(ownerPath), e));
+                }
+                if (e.ChildLevel != null)
+                {
+                    List<ElementBaseData> childPath = new List<ElementBaseData>(ownerPath) { e };
+                    collectDatedElements(e.ChildLevel, childPath, result);
+                }
+            }
+        }
+
+        /// <summary>Navigate to the level identified by <paramref name="ownerPath"/> and select <paramref name="target"/> in it.</summary>
+        public void NavigateToElementInLevel(List<ElementBaseData> ownerPath, ElementBaseData target)
+        {
+            NavigateToOwnerPath(ownerPath); // rebuilds _items and clears the previous selection
+            var item = _items.FirstOrDefault(i => i.Item1 == target);
+            if (item.Item2 != null)
+            {
+                SetElementAsSelected(item.Item2);
+            }
+        }
+
+    }
+
+    /// <summary>A dated element plus the owner path needed to navigate to its level (for the overview window).</summary>
+    public class DatedElementInfo
+    {
+        public DateOnly Date { get; }
+        public string Text { get; }
+        public List<ElementBaseData> OwnerPath { get; }
+        public ElementBaseData Element { get; }
+
+        public DatedElementInfo(DateOnly date, string text, List<ElementBaseData> ownerPath, ElementBaseData element)
+        {
+            Date = date;
+            Text = text;
+            OwnerPath = ownerPath;
+            Element = element;
+        }
     }
 }

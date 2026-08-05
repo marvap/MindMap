@@ -1,0 +1,67 @@
+<Window x:Class="WpfLineDemo.DateOverviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Přehled datumů – Mind Map"
+        Height="560" Width="500"
+        MinHeight="320" MinWidth="360"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="#FFF7F9FC"
+        KeyDown="Window_KeyDown">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#FF4A6FA5" Padding="20,14">
+            <StackPanel>
+                <TextBlock Text="Přehled datumů"
+                           FontSize="18" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Všechny uzly s datem z celé hierarchie. Dvojklikem na řádek přejdete na uzel."
+                           FontSize="12" Foreground="#FFD6E0EE" Margin="0,4,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- List -->
+        <ListView x:Name="List" Grid.Row="1" Margin="12"
+                  BorderThickness="1" BorderBrush="#FFD5DCE5"
+                  MouseDoubleClick="List_MouseDoubleClick">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Padding" Value="2,3"/>
+                    <Style.Triggers>
+                        <!-- Dates strictly before today: gray + italic -->
+                        <DataTrigger Binding="{Binding IsPast}" Value="True">
+                            <Setter Property="Foreground" Value="#FF9AA0A6"/>
+                            <Setter Property="FontStyle" Value="Italic"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Datum" Width="100"
+                                    DisplayMemberBinding="{Binding DateText}"/>
+                    <GridViewColumn Header="Den" Width="50"
+                                    DisplayMemberBinding="{Binding WeekdayText}"/>
+                    <GridViewColumn Header="Uzel" Width="290"
+                                    DisplayMemberBinding="{Binding Text}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="#FFECEFF4" BorderBrush="#FFD5DCE5" BorderThickness="0,1,0,0" Padding="20,10">
+            <Grid>
+                <TextBlock x:Name="EmptyHint" Text="Zavřete klávesou Esc nebo Ctrl+F2." VerticalAlignment="Center"
+                           FontSize="12" Foreground="#FF6B7785"/>
+                <Button Content="Zavřít" HorizontalAlignment="Right" Padding="18,5"
+                        IsDefault="True" IsCancel="True" Click="CloseButton_Click"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

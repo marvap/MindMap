@@ -34,6 +34,13 @@ namespace MindMap.Data
         public NodeColorEnum Color { get; set; }
 
         /// <summary>
+        /// Optional date attached to this node (date only, no time). Null = no date.
+        /// Additive + nullable: old .mmd files (without this field) deserialize to null.
+        /// System.Text.Json serializes DateOnly as an ISO "yyyy-MM-dd" string.
+        /// </summary>
+        public DateOnly? Date { get; set; }
+
+        /// <summary>
         /// Optional nested sub-map owned by this node (hierarchy). Null for a plain node.
         /// Additive + nullable on purpose: old flat .mmd files (without this field)
         /// deserialize to null and keep working unchanged.
@@ -55,6 +62,7 @@ namespace MindMap.Data
                 Bold = this.Bold,
                 Italic = this.Italic,
                 Color = this.Color,
+                Date = this.Date,
                 ChildLevel = this.ChildLevel?.DeepClone() // deep-clone the whole subtree
             };
         }

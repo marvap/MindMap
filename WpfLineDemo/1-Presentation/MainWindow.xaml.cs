@@ -85,6 +85,13 @@ namespace WpfLineDemo
             tree.ShowDialog();
         }
 
+        /// <summary>Open the modal date overview (Ctrl+F2, and auto-opened after loading a dated file).</summary>
+        public void ShowDateOverview()
+        {
+            var overview = new DateOverviewWindow { Owner = this };
+            overview.ShowDialog();
+        }
+
         private Point _newTextMousePosition;
 
         private void Window_TextInput(object sender, TextCompositionEventArgs e)
@@ -157,7 +164,15 @@ namespace WpfLineDemo
 
             if (e.Key == Key.F2)
             {
-                ShowTree();
+                bool ctrl = Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl);
+                if (ctrl)
+                {
+                    ShowDateOverview(); // Ctrl+F2 = date overview
+                }
+                else
+                {
+                    ShowTree(); // plain F2 = hierarchy tree
+                }
                 e.Handled = true;
                 return;
             }
@@ -226,6 +241,10 @@ namespace WpfLineDemo
                 else if (e.Key == Key.I)
                 {
                     Context.Controller.ToggleItalic();
+                }
+                else if (e.Key == Key.D)
+                {
+                    Context.Controller.SetDateForNodeUnderMouse();
                 }
             }
             if (e.Key == Key.Escape && !Context.Controller.IsEditingActive)

@@ -22,8 +22,9 @@ namespace MindMap.Presentation.Components
 
         private bool _isDragging;
 
-        // Inner visual: [ text ][ ▸ sub-level indicator ] inside the Border.
+        // Inner visual: [ text ][ ◷ date ][ ▸ sub-level ] inside the Border. Fixed order; each shown/hidden independently.
         private readonly TextBlock _textBlock;
+        private readonly TextBlock _clock;
         private readonly TextBlock _indicator;
 
         public string Text
@@ -62,6 +63,16 @@ namespace MindMap.Presentation.Components
                 VerticalAlignment = VerticalAlignment.Center
             };
 
+            _clock = new TextBlock
+            {
+                Text = "◷", // monochrome clock-like glyph; shown only when the node has a date (tentative glyph)
+                FontWeight = FontWeights.Bold,
+                Foreground = new SolidColorBrush(Color.FromRgb(0x20, 0x20, 0x20)), // dark: contrasts on all node colors + DodgerBlue
+                Margin = new Thickness(5, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Visibility = Visibility.Collapsed
+            };
+
             _indicator = new TextBlock
             {
                 Text = "▸", // ▸ shown only when the node owns a sub-level
@@ -75,7 +86,7 @@ namespace MindMap.Presentation.Components
             Child = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
-                Children = { _textBlock, _indicator }
+                Children = { _textBlock, _clock, _indicator }
             };
 
             MouseLeftButtonDown += Element_MouseLeftButtonDown;
@@ -106,6 +117,7 @@ namespace MindMap.Presentation.Components
         public void SetFontSize(double fontSize)
         {
             _textBlock.FontSize = fontSize;
+            _clock.FontSize = fontSize;     // keep the ◷ in scale with the node text
             _indicator.FontSize = fontSize; // keep the ▸ in scale with the node text
         }
 
@@ -123,6 +135,12 @@ namespace MindMap.Presentation.Components
         public void SetHasChildLevel(bool hasChildLevel)
         {
             _indicator.Visibility = hasChildLevel ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        /// <summary>Show/hide the ◷ clock glyph that marks a node with a date set.</summary>
+        public void SetHasDate(bool hasDate)
+        {
+            _clock.Visibility = hasDate ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public void BringToFront()
