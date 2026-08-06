@@ -44,6 +44,7 @@ namespace WpfLineDemo
                 .Select(d => new Row
                 {
                     DateText = d.Date.ToString("dd.MM.yyyy"),
+                    DaysText = (d.Date.DayNumber - today.DayNumber).ToString(), // negative for past dates
                     WeekdayText = WeekdayAbbr[d.Date.DayOfWeek],
                     Text = Controller.TruncateLabel(d.Text, 50),
                     IsPast = d.Date < today, // strictly before today; today stays normal
@@ -86,6 +87,7 @@ namespace WpfLineDemo
         private class Row
         {
             public string DateText { get; set; } = "";
+            public string DaysText { get; set; } = "";
             public string WeekdayText { get; set; } = "";
             public string Text { get; set; } = "";
             public bool IsPast { get; set; }

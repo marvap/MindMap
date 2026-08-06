@@ -46,9 +46,11 @@
                 <GridView>
                     <GridViewColumn Header="Datum" Width="100"
                                     DisplayMemberBinding="{Binding DateText}"/>
+                    <GridViewColumn Header="Dní" Width="50"
+                                    DisplayMemberBinding="{Binding DaysText}"/>
                     <GridViewColumn Header="Den" Width="50"
                                     DisplayMemberBinding="{Binding WeekdayText}"/>
-                    <GridViewColumn Header="Uzel" Width="290"
+                    <GridViewColumn Header="Uzel" Width="240"
                                     DisplayMemberBinding="{Binding Text}"/>
                 </GridView>
             </ListView.View>
