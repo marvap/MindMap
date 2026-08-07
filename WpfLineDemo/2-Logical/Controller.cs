@@ -908,7 +908,9 @@ namespace MindMap._2_Logical
 
         private void updateNavChrome()
         {
-            List<string> segments = new List<string> { "root" };
+            // "root" is shown only at the root level; deeper down the first segment is empty
+            // so the breadcrumb starts with the ▸ separator.
+            List<string> segments = new List<string> { _levelPath.Count > 1 ? "" : "root" };
             foreach (var (owner, _) in _levelPath.Skip(1))
             {
                 segments.Add(TruncateLabel(owner!.Text, 20));

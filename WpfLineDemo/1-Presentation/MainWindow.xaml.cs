@@ -70,7 +70,8 @@ namespace WpfLineDemo
         /// <summary>Set the breadcrumb text from level segments (root first).</summary>
         public void SetBreadcrumb(IReadOnlyList<string> segments)
         {
-            BreadcrumbText.Text = string.Join("  ▸  ", segments);
+            // An empty first segment must not leave the leading separator indented.
+            BreadcrumbText.Text = string.Join("  ▸  ", segments).TrimStart();
         }
 
         /// <summary>Enable/disable the ⬅ back button (disabled at the root level).</summary>
