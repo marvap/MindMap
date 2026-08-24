@@ -1,4 +1,4 @@
-<Window x:Class="WpfLineDemo.HelpWindow"
+﻿<Window x:Class="WpfLineDemo.HelpWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Nápověda – Mind Map"
@@ -77,13 +77,13 @@
 
                 <TextBlock Text="Vytváření a úprava uzlů" Style="{StaticResource SectionHeader}"/>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="dvojklik na plátno"/></Border>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + dvojklik na plátno"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Vytvořit nový uzel a začít psát text"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="začít psát"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Psaní na prázdném plátně (od 4 znaků) rovnou vytvoří uzel s textem v místě kurzoru"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="dvojklik na uzel"/></Border>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + dvojklik na uzel"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Upravit text uzlu"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="tažení uzlu"/></Border>
@@ -153,10 +153,10 @@
 
                 <TextBlock Text="Hierarchie (podúrovně)" Style="{StaticResource SectionHeader}"/>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + dvojklik na uzel"/></Border>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="dvojklik na uzel"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Vejít do podúrovně uzlu (pokud nemá, vytvoří se). Uzel s podúrovní je označen značkou ▸"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Ctrl + dvojklik na výběr"/></Border>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="dvojklik na výběr"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Sbalit vybrané uzly do nové podúrovně – na aktuální úrovni je nahradí jeden skupinový uzel (relace se přesměrují na něj)"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="⬅ (tlačítko nahoře)"/></Border>

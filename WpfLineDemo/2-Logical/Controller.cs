@@ -271,6 +271,16 @@ namespace MindMap._2_Logical
             _selectionBlock.Clear();
         }
 
+        /// <summary>Drop a single element from the selection (used to revert a gesture's own side effect).</summary>
+        private void unselectElement(FrameworkElement element)
+        {
+            var item = getItem(element);
+            if (_selectionBlock.Remove(item))
+            {
+                (element as TextElement).MarkAsUnselected();
+            }
+        }
+
 
         // UNIVERZÁLNÍ METODY *****=================================
 
@@ -776,28 +786,45 @@ namespace MindMap._2_Logical
         public void CtrlClickSelect(FrameworkElement element)
         {
             // Snapshot the selection BEFORE this click mutates it — the first click of a
-            // Ctrl+double-click would otherwise poison the "was it selected?" decision.
+            // Ctrl+double-click would otherwise hide whether the node had been selected already.
             _ctrlGestureSnapshot = _selectionBlock.Select(s => s.Item1).ToList();
             SetElementAsSelected(element);
         }
 
         private List<ElementBaseData>? _ctrlGestureSnapshot;
 
-        /// <summary>Ctrl+double-click on a node: collapse the pre-gesture selection, or plain enter/create its own sub-level.</summary>
+        /// <summary>Ctrl+double-click on a node: edit its text.</summary>
         public void NodeCtrlDoubleClicked(FrameworkElement element)
         {
             ElementBaseData node = getItem(element).Item1;
             List<ElementBaseData> snapshot = _ctrlGestureSnapshot ?? new List<ElementBaseData>();
             _ctrlGestureSnapshot = null;
 
-            if (snapshot.Contains(node))
+            if (!snapshot.Contains(node))
             {
-                // Node was already selected before the gesture -> collapse the selection into a new sub-level.
-                collapseSelectionIntoSubLevel(snapshot, node);
+                // This gesture's own first Ctrl+click added the node to the selection -> take it back out,
+                // otherwise a later plain double-click would collapse it instead of entering its sub-level.
+                unselectElement(element);
+            }
+
+            TextElementEditRequested((TextElement)element);
+        }
+
+        /// <summary>Plain double-click on a node: collapse the current selection into a new sub-level, or enter/create the node's own.</summary>
+        public void NodeDoubleClicked(FrameworkElement element)
+        {
+            ElementBaseData node = getItem(element).Item1;
+
+            // A plain click only starts a drag, it never touches the selection - so the current
+            // selection is still the pre-gesture one and no snapshot is needed here.
+            if (isElementInSelectionBlock(element))
+            {
+                // Node was already selected -> collapse the whole selection into a new sub-level.
+                collapseSelectionIntoSubLevel(_selectionBlock.Select(s => s.Item1).ToList(), node);
             }
             else
             {
-                // Node was not selected -> ignore the spurious first-click selection and just enter/create its sub-level.
+                // Node was not selected -> any other selection is ignored; just enter/create its sub-level.
                 ClearSelections();
                 enterOrCreateChildLevel(node);
             }

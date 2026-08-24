@@ -54,7 +54,12 @@ namespace WpfLineDemo
         {
             if (e.ClickCount == 2)
             {
-                Context.Controller.CanvasDoubleClicked(e.GetPosition(MyCanvas));
+                // Ctrl+double-click creates a node; a plain double-click on the canvas does nothing
+                // (same split as on a node: Ctrl = content, plain = hierarchy).
+                if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+                {
+                    Context.Controller.CanvasDoubleClicked(e.GetPosition(MyCanvas));
+                }
             }
             else
             {

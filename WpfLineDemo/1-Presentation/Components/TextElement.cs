@@ -235,7 +235,7 @@ namespace MindMap.Presentation.Components
             {
                 if (e.ClickCount == 2)
                 {
-                    // Ctrl+double-click: enter/create sub-level, or collapse the pre-gesture selection.
+                    // Ctrl+double-click: edit the node text.
                     Context.Controller.NodeCtrlDoubleClicked(this);
                 }
                 else
@@ -248,7 +248,8 @@ namespace MindMap.Presentation.Components
             }
             else if (e.ClickCount == 2) // dvojklik
             {
-                Context.Controller.TextElementEditRequested(this);
+                // Plain double-click: enter/create sub-level, or collapse the current selection.
+                Context.Controller.NodeDoubleClicked(this);
 
                 e.Handled = true;
                 return;
