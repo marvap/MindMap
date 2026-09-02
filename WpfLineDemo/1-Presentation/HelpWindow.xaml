@@ -89,8 +89,8 @@
                     <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="tažení uzlu"/></Border>
                     <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Přesunout uzel (nebo celý vybraný blok)"/></Grid>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="R + dvojklik na uzel"/></Border>
-                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Smazat uzel (R jako Rubber / Remove) – zeptá se na potvrzení"/></Grid>
+                    <Border Grid.Column="0" Style="{StaticResource KeyChip}"><TextBlock Style="{StaticResource KeyText}" Text="Delete"/></Border>
+                    <TextBlock Grid.Column="1" Style="{StaticResource DescText}" Text="Smazat výběr, jinak uzel pod kurzorem – zeptá se na potvrzení"/></Grid>
 
                 <TextBlock Text="Formátování uzlů" Style="{StaticResource SectionHeader}"/>
                 <Grid Margin="0,1"><Grid.ColumnDefinitions><ColumnDefinition Width="160"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>

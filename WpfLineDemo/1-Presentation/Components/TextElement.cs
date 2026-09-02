@@ -216,17 +216,9 @@ namespace MindMap.Presentation.Components
                 e.Handled = true;
                 return;
             }
-            else if (Keyboard.IsKeyDown(Key.R)) // Rubber / Remove
+            else if (Keyboard.IsKeyDown(Key.R)) // Rubber / Remove a relation (nodes are deleted with the Delete key)
             {
-                if (e.ClickCount == 2)
-                {
-                    // Controller handles the confirm (and counts sub-levels if any).
-                    Context.Controller.ElementDeleteRequested(this);
-                }
-                else
-                {
-                    Context.Controller.DelineElementSpecified(this);
-                }
+                Context.Controller.DelineElementSpecified(this);
 
                 e.Handled = true;
                 return;

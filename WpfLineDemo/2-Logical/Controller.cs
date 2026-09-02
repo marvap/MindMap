@@ -969,16 +969,23 @@ namespace MindMap._2_Logical
 
         //*** DELETE WITH SUB-LEVELS **********************************
 
-        public void ElementDeleteRequested(TextElement textElement)
+        /// <summary>Deletes the selection, or - when nothing is selected - the node under the mouse. Asks for confirmation first.</summary>
+        public void DeleteRequested()
         {
-            ElementBaseData data = getItem(textElement).Item1;
-            int subLevels = countSubLevels(data);
+            // copy: getStyleTargets() may return _selectionBlock itself, which ClearSelections() empties below
+            List<(ElementBaseData, FrameworkElement)> targets = getStyleTargets().ToList(); // selection, else node under mouse
+            if (!targets.Any())
+            {
+                return;
+            }
 
+            int nodes = targets.Count;
+            int subLevels = targets.Sum(t => countSubLevels(t.Item1));
+
+            string nodesPart = $"{nodes} {czechPlural(nodes, "element", "elementy", "elementů")}";
             string message = subLevels == 0
-                ? "Opravdu chcete smazat tento element?"
-                : subLevels == 1
-                    ? "Opravdu chcete smazat tento element i s jeho 1 podúrovní?"
-                    : $"Opravdu chcete smazat tento element i s jeho {subLevels} podúrovněmi?";
+                ? $"Opravdu chcete smazat {nodesPart}?"
+                : $"Opravdu chcete smazat {nodesPart} i {czechWith(subLevels)} {subLevels} {czechPlural(subLevels, "podúrovní", "podúrovněmi", "podúrovněmi")}?";
 
             var result = MessageBox.Show(
                 Context.MainWindow,
@@ -987,10 +994,38 @@ namespace MindMap._2_Logical
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
-            if (result == MessageBoxResult.Yes)
+            if (result != MessageBoxResult.Yes)
             {
-                ElementRemovalRequested(textElement); // removing the node removes its whole subtree (ChildLevel is a field)
+                return;
             }
+
+            ClearSelections(); // the selected nodes are about to disappear
+
+            foreach ((ElementBaseData, FrameworkElement) target in targets)
+            {
+                ElementRemovalRequested((TextElement)target.Item2); // removing the node removes its whole subtree (ChildLevel is a field)
+            }
+        }
+
+        /// <summary>Czech plural form: 1 -> one, 2-4 -> few, otherwise many.</summary>
+        private static string czechPlural(int n, string one, string few, string many)
+        {
+            if (n == 1)
+            {
+                return one;
+            }
+            if (n >= 2 && n <= 4)
+            {
+                return few;
+            }
+            return many;
+        }
+
+        /// <summary>Czech preposition "s"/"se" before a number (vocalized when the spoken number starts with s/sh).</summary>
+        private static string czechWith(int n)
+        {
+            bool vocalized = n == 2 || n == 6 || n == 7 || n == 16 || n == 17 || (n >= 60 && n <= 79);
+            return vocalized ? "se" : "s";
         }
 
         /// <summary>Count of sub-levels in the whole subtree of <paramref name="e"/> (levels, not nodes; recursive).</summary>

@@ -183,6 +183,13 @@ namespace WpfLineDemo
                 return;
             }
 
+            if (e.Key == Key.Delete && !Context.Controller.IsEditingActive) // during editing Delete belongs to the editor
+            {
+                Context.Controller.DeleteRequested();
+                e.Handled = true;
+                return;
+            }
+
             if (e.Key == Key.F3)
             {
                 Context.Controller.FindNext(); // next search match (or the Ctrl+F dialog if none active)
