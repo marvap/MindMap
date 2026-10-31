@@ -143,10 +143,10 @@ namespace MindMap.Presentation.Components
             _clock.Visibility = hasDate ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        public void BringToFront()
+        /// <summary>Visual stacking only; the data Zindex is committed by the controller on a real move.</summary>
+        public void SetVisualZindex(int zIndex)
         {
-            int index = Context.Controller.SetElementMaxZindex(this);
-            Panel.SetZIndex(this, index);
+            Panel.SetZIndex(this, zIndex);
         }
 
         private NodeColorEnum _color = NodeColorEnum.Blue;

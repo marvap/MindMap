@@ -86,7 +86,7 @@ namespace MindMap.Data
             {
                 zindexes.Add(element.Zindex);
             }
-            ids.Sort((a, b) => a.CompareTo(b));
+            zindexes.Sort((a, b) => a.CompareTo(b));
 
             List<(int, int)> zindexesMap = new List<(int, int)>();
             for (int i = 0; i < zindexes.Count; i++)

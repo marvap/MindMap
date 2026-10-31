@@ -118,6 +118,10 @@ namespace MindMap._1_Presentation.Components
             this.IsActive = false;
             this.KeyDown -= TextEdit_KeyDown;
             this.TextChanged -= TextEdit_TextChanged;
+
+            // The editor held the keyboard focus and has just left the visual tree. Without handing
+            // the focus back, the window-level shortcuts and the type-to-create gesture stop firing.
+            Context.MainWindow.Focus();
         }
 
     }

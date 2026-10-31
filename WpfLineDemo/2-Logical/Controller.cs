@@ -189,19 +189,11 @@ namespace MindMap._2_Logical
             redrawAllLinesOnBackground(Context.CurrProject);
         }
 
-        public int SetElementMaxZindex(FrameworkElement element)
-        {
-            (ElementBaseData, FrameworkElement) item = _items.First(i => i.Item2 == element);
-            int index = Context.CurrProject.GetNextMaxZindex();
-            item.Item1.Zindex = index;
-            return index;
-        }
-
-
         //*** MOVING ******************************
 
         private Point _mouseStartPosition;
         private List<(ElementBaseData, FrameworkElement)> _movedBlock;
+        private int _movedBlockZindex;
 
         public void ElementStartMoving(FrameworkElement element, Point mouseStartPosition)
         {
@@ -215,10 +207,14 @@ namespace MindMap._2_Logical
             }
 
             _mouseStartPosition = mouseStartPosition;
-            
+            _movedBlockZindex = Context.CurrProject.GetNextMaxZindex();
+
+            // Raise the grabbed nodes visually only. Writing Zindex into the data already here would
+            // mark the document dirty even for a plain click that moves nothing.
+            int z = _movedBlockZindex;
             foreach (var item in _movedBlock)
             {
-                (item.Item2 as TextElement).BringToFront();
+                (item.Item2 as TextElement).SetVisualZindex(z++);
                 drawAllElementLines(item, false); // schovej všechny linie
             }
         }
@@ -235,14 +231,26 @@ namespace MindMap._2_Logical
 
         public void ElementStopMoving(FrameworkElement element, Point mouseEndPosition)
         {
+            Vector delta = mouseEndPosition - _mouseStartPosition;
+            bool moved = delta.X != 0 || delta.Y != 0;
+
+            int z = _movedBlockZindex;
             foreach (var item in _movedBlock)
             {
-                Vector delta = mouseEndPosition - _mouseStartPosition;
                 item.Item1.X = item.Item1.X + delta.X;
                 item.Item1.Y = item.Item1.Y + delta.Y;
                 Canvas.SetLeft(item.Item2, item.Item1.X);
                 Canvas.SetTop(item.Item2, item.Item1.Y);
                 //drawAllElementLines(item, true); // bohužel hned nelze, kreslí to chybné čáry
+
+                if (moved)
+                {
+                    item.Item1.Zindex = z++; // commit the raise done in ElementStartMoving
+                }
+                else
+                {
+                    (item.Item2 as TextElement).SetVisualZindex(item.Item1.Zindex); // undo the raise
+                }
             }
 
             redrawAllLinesOnBackground(Context.CurrProject); // mohly být poškozeny některé jiné linie
@@ -616,6 +624,9 @@ namespace MindMap._2_Logical
             }
             else
             {
+                DateTime started = DateTime.UtcNow;
+                Mouse.OverrideCursor = Cursors.Wait;
+
                 // Window size is per-level: flush the current level's size; window state is a root-only concern.
                 flushCurrentWindowSize();
                 Context.RootProject.WindowState = Context.MainWindow.WindowState == WindowState.Minimized ? WindowState.Normal : Context.MainWindow.WindowState;
@@ -624,7 +635,31 @@ namespace MindMap._2_Logical
                 File.WriteAllText(Context.CurrFilePath, content, Encoding.UTF8);
                 _dataSaved = content;
                 Context.MainWindow.Title = "Mind Map - " + Context.CurrFilePath;
+
+                releaseSaveCursorAfterMinimum(started);
             }
+        }
+
+        private static readonly TimeSpan SAVE_CURSOR_MIN_DURATION = TimeSpan.FromSeconds(1);
+        private DispatcherTimer? _saveCursorTimer;
+
+        /// <summary>Keeps the wait cursor up for at least SAVE_CURSOR_MIN_DURATION without blocking the UI.</summary>
+        private void releaseSaveCursorAfterMinimum(DateTime started)
+        {
+            if (_saveCursorTimer == null)
+            {
+                _saveCursorTimer = new DispatcherTimer();
+                _saveCursorTimer.Tick += (_, _) =>
+                {
+                    _saveCursorTimer.Stop();
+                    Mouse.OverrideCursor = null;
+                };
+            }
+
+            TimeSpan remaining = SAVE_CURSOR_MIN_DURATION - (DateTime.UtcNow - started);
+            _saveCursorTimer.Stop(); // a repeated save restarts the countdown
+            _saveCursorTimer.Interval = remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero;
+            _saveCursorTimer.Start();
         }
 
         public void Open()
